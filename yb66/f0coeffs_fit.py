@@ -56,4 +56,4 @@ if __name__ == "__main__":
          title=filename)
 
     print("fitted Bdot Xiaojiang: ", coeff_Bdot)
-    print("fitted srio Xiaojiang: ", popt_Bdot)
+    print("fitted Bdot srio: ", popt_Bdot)
