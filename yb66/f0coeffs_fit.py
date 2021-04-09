@@ -59,3 +59,27 @@ if __name__ == "__main__":
 
     print("fitted Bdot Xiaojiang: ", coeff_Bdot)
     print("fitted Bdot srio: ", popt_Bdot)
+
+
+    #
+    # add this block to f0_InterTables.dat
+    #
+    print("\n#S  5  B3+\n#N 9\n#L a1  a2  a3  a4  c  b1  b2  b3  b4\n"+"%g "*9 % (tuple(popt_Bdot)))
+
+    #
+    # test remote B3+
+    #
+    try:
+        import os
+        os.remove("f0_InterTables.dat")
+    except:
+        pass
+
+    filename = "f0_InterTables.dat"
+    coeffs_B3plus_remote = get_f0_coeffs_from_dabax_file(entry_name="B3+", filename=filename)
+    coeff_Bdot = numpy.array([])
+    plot(q, f0_B3plus,
+         q, get_f0_from_f0coeff(popt_B3plus, q),
+         xtitle=r"q (sin $\theta$ / $\lambda$)", ytitle="f0 [electron units]",
+         legend=["B3plus original", "B3plus from remote f0_InterTables.dat"],
+         title=filename)
