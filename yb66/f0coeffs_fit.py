@@ -3,8 +3,10 @@ from dabax_access_f0 import get_f0_coeffs_from_dabax_file, get_f0_from_f0coeff
 
 
 if __name__ == "__main__":
-    from srxraylib.plot.gol import plot
+    from srxraylib.plot.gol import plot, set_qt
     from scipy.optimize import curve_fit
+
+    set_qt()
 
     filename = "f0_InterTables.dat"
     coeffs_B = get_f0_coeffs_from_dabax_file(entry_name="B", filename=filename)

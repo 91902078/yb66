@@ -1,7 +1,7 @@
 import numpy
 from silx.io.specfile import SpecFile
 
-from dabax_access_f0 import get_dabax_file
+from dabax_util import get_dabax_file
 
 
 def get_crystal_data_from_dabax_file(entry_name="Si", filename="Crystal.dat"):
