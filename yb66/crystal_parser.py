@@ -1,11 +1,13 @@
 import numpy
 from dabax_util import get_dabax_file
 from silx.io.specfile import SpecFile
+from f0coeffs_fit import Crystal_get_f0coeffs
+from SymbolToFromAtomicNumber import SymbolToFromAtomicNumber
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
 
 
-def crystal_parser(filename='YB66_1.dat', entry_name='YB66'):
+def crystal_parser(filename='Crystals.dat', entry_name='YB66'):
     """
     X.J. YU, xiaojiang@nus.edu.sg, M. Sanchez del Rio srio@esrf.eu
 
@@ -66,13 +68,15 @@ def crystal_parser(filename='YB66_1.dat', entry_name='YB66'):
 
     for i in range(cell_data.shape[1]):
         if cell_data.shape[0] == 5: # standard 5 columns
-            atom.append({'Zatom':cell_data[0,i],
+            atom.append({'Zatom':int(cell_data[0,i]),
                          'fraction':cell_data[1,i],
                          'x': cell_data[2,i],
                          'y': cell_data[3, i],
                          'z': cell_data[4, i],})
         else: # 6 columns (charge)
-            atom.append({'Zatom':cell_data[0,i],
+            #'AtomicName' required to compatible my current code
+            atom.append({'AtomicName': SymbolToFromAtomicNumber(int(cell_data[0,i]))+f'%+g'%cell_data[5, i],  
+                         'Zatom':int(cell_data[0,i]),
                          'fraction':cell_data[1,i],
                          'x': cell_data[2,i],
                          'y': cell_data[3, i],
@@ -83,25 +87,47 @@ def crystal_parser(filename='YB66_1.dat', entry_name='YB66'):
     cryst['cpointer'] = None
 
     # TODO: Get and store anisotropic coeffs
-    try:
-        tmp = sf[index_found].scan_header_dict["UANISO_COFF_B1"]
+    ANISO_KEY = "UANISO_COFF"   #prefix for a line with anisotropic coefficients
+    #tmp = sf[index_found].scan_header_dict["UANISO_COFF_B1"]
+    d = sf[index_found].scan_header_dict
+    AnisoItem = {'Name': '       ', 'start': 0, 'end': 0, 'beta11': 0.0, 'beta22': 0.0, 'beta33': 0.0,
+                 'beta12': 0.0, 'beta13': 0.0, 'beta23': 0.0}
 
-        AnisoItem = {'Name': '       ', 'start': 0, 'end': 0, 'beta11': 0.0, 'beta22': 0.0, 'beta33': 0.0,
-                     'beta12': 0.0, 'beta13': 0.0, 'beta23': 0.0}
+    a=[ (x, d[x].split()) for x in d if x[:len(ANISO_KEY)] == ANISO_KEY]
+    if len(a) >0:       #found Anisotropic coefficients in the header, process it
+        a=sorted(a,key=lambda x:int(x[1][0]),reverse=False)     #sort 'Start' ascendant, avoid order changed by the SpecFile
+        n = 0
+        for x in a: #tuple('UANISO_COFF_B1',[1 96 0.00038 0.00044 0.00039 0 0 0])
+            AnisoItem['Name']=   x[0][len(ANISO_KEY)+1:]      #get site atom name starting from 13th character 'B1', etc
+            AnisoItem['start']=  int(x[1][0])
+            AnisoItem['end']=    int(x[1][1])
+            AnisoItem['beta11']= float(x[1][2])
+            AnisoItem['beta22']= float(x[1][3])
+            AnisoItem['beta33']= float(x[1][4])
+            AnisoItem['beta12']= float(x[1][5])
+            AnisoItem['beta13']= float(x[1][6])
+            AnisoItem['beta23']= float(x[1][7])
+            if n ==0:
+                Aniso = numpy.array([AnisoItem.copy()])
+            else:
+                Aniso = numpy.append(Aniso,[AnisoItem.copy()])
+            n = n + 1
+        cryst['Aniso'] = Aniso      #if having key 'Ansio' when there is anisotropic data,otherwise no
+        cryst['n_aniso']= n
 
-
-        # AnisoItem['Name'] = str(a[0][13:])  # get site atom name starting from 13th character 'B1', etc
-        # AnisoItem['start'] = int(a[1])
-        # AnisoItem['end'] = int(a[2])
-        # AnisoItem['beta11'] = float(a[3])
-        # AnisoItem['beta22'] = float(a[4])
-        # AnisoItem['beta33'] = float(a[5])
-        # AnisoItem['beta12'] = float(a[6])
-        # AnisoItem['beta13'] = float(a[7])
-        # AnisoItem['beta23'] = float(a[8])
-    except:
-        pass
-
+    #process charged f0 coefficients, with 6 column, f0 coefficients is not tabulated
+    #stroe a f0 coefficients in a key f0coeffs, no effect for 5 column
+    if cell_data.shape[0] == 6: # standard 6 columns
+        AtomicChargeList = {}
+        #first row is atomic number, it is integer
+        UniqueAtomicNumber = [int(x) for x in list(sorted(set(cell_data[0,:])))]         
+        for x in  UniqueAtomicNumber:
+            AtomicChargeList[str(x)]= [] 
+        for i,x in enumerate(cell_data[0,:]):
+            if cell_data[5,i] not in AtomicChargeList[str(int(x))]:
+                AtomicChargeList[str(int(x))].append(cell_data[5,i])      #Charge value
+        cryst['f0coeffs'] =Crystal_get_f0coeffs(AtomicChargeList.items())
+    
 
     return cryst
 
