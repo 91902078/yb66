@@ -137,6 +137,8 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     #
     #commenut out By XJ.YU, xiaojiang@nus.edu.sg
     # always 1, not handle by diff_pat.exe
+    # for Muscovite crystal (KAl2(AlSi3)O10(OH)2), Al has two occupancy (1, 0.25), 5 atomic types
+    # if using the number of unique_Zatom for unique_fraction, only first five numbers used in list_fraction
     #        unique_fraction.append(list_fraction[i])
             unique_fraction.append(1)
             txt += "%g "%(unique_fraction[i])
