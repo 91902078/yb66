@@ -3,11 +3,15 @@ import os
 import numpy
 
 from orangecontrib.xoppy.util.xoppy_util import locations, XoppyPhysics
-from xoppy_xraylib_util2 import bragg_calc2
+from crystal_util import bragg_calc2
 from dabax_util import Crystal_GetCrystalsList
 
 
 if __name__ == "__main__":
+
+    import sys
+
+
     import argparse
 
     parser = argparse.ArgumentParser(description='Calculation structure factor')
@@ -27,7 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('--POISSON', dest='POISSON', default=[0.22],type=float, nargs=1, help='Scan: 0 Th absolute 1 Th-Th Bragg (cor) 2 Th-Th Bragg')
     parser.add_argument('--CUT',dest='CUT', default=["2 -1 -1;  1 1 1 ; 0 0 0"],type=str, nargs=1, help='Cut')
     parser.add_argument('--FILECOMPLIANCE',dest='FILECOMPLIANCE', default=["mycompliance.dat"],type=str, nargs=1, help='FILECOMPLIANCE')
-    
+
     args = parser.parse_args()
     descriptor = args.descriptor[0]
     UNIT = 1
@@ -52,7 +56,9 @@ if __name__ == "__main__":
     POISSON = args.POISSON[0]
     CUT = args.CUT[0]
     FILECOMPLIANCE = args.FILECOMPLIANCE[0]
-    
+
+
+
     for file in ["diff_pat.dat","diff_pat.gle","diff_pat.par","diff_pat.xop","xcrystal.bra"]:
         try:
             os.remove(os.path.join(locations.home_bin_run(),file))

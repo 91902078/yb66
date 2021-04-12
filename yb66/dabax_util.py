@@ -347,3 +347,4 @@ def symbol_to_from_atomic_number(ATOM):
             return int(a[0])
 
     raise Exception("Why are you here?")
+

@@ -1,12 +1,5 @@
-import sys
-import os
 import numpy
-
-from orangecontrib.xoppy.util.xoppy_util import locations, XoppyPhysics
-from xoppy_xraylib_util2 import bragg_calc2
-# from crystal_shadow import crystal_shadow
-from dabax_util import Crystal_GetCrystalsList
-
+from crystal_util import bragg_calc2
 import scipy.constants as codata
 
 
