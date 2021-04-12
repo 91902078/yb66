@@ -3,11 +3,11 @@ import numpy
 import os
 import scipy.constants as codata
 # X.J. Yu, slsyxj@nus.edu.sg
-from orangecontrib.xoppy.util.temperature_anisotropy import TemperFactor
+from temperature_anisotropy import TemperFactor
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
 from dabax_util import crystal_parser, crystal_atnum
-from f0coeffs_fit import get_f0_coeffs
-from symbol_to_from_atomic_number import symbol_to_from_atomic_number
+from dabax_util import get_f0_coeffs
+from dabax_util import symbol_to_from_atomic_number
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
 import re
 #-------------------------------------------------------------------------
