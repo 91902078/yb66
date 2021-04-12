@@ -5,9 +5,9 @@ import scipy.constants as codata
 # X.J. Yu, slsyxj@nus.edu.sg
 from orangecontrib.xoppy.util.temperature_anisotropy import TemperFactor
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
-from orangecontrib.xoppy.util.Crystal_Atnum import Crystal_Atnum
-from orangecontrib.xoppy.util.Crystal_Parser import crystal_parser
-from SymbolToFromAtomicNumber import SymbolToFromAtomicNumber
+from dabax_util import crystal_parser, crystal_atnum
+from f0coeffs_fit import get_f0_coeffs
+from symbol_to_from_atomic_number import symbol_to_from_atomic_number
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
 import re
 #-------------------------------------------------------------------------
@@ -82,13 +82,17 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     unique_Zatom = set(list_Zatom)
 ##  ------------ XJ.YU  Singapore Synchrotorn Light Source --------------------------
 ##  For backward compatible
-    if len(atom[0]) != 7:   #6 column + 1 AtomicName
-        cryst['Aniso']=[{'start':0}]
-        for i in range(len(atom)):
-            atom[i]['AtomicName']=''
-    
-    list_AtomicName = [ atom[i]['AtomicName'] for i in range(len(atom))]
-    unique_AtomicName = list(sorted(set(list_AtomicName)))
+    if len(atom[0]) == 7:  #6 column + 1 AtomicName
+        f0coeffs = get_f0_coeffs(atom, list_Zatom)
+        list_AtomicName = [ atom[i]['AtomicName'] for i in range(len(atom))]
+        unique_AtomicName = list(sorted(set(list_AtomicName)))
+    else:  #usually normal 5 column  
+        """         cryst['Aniso']=[{'start':0}]
+                for i in range(len(atom)):
+                    atom[i]['AtomicName']=''
+        """    
+        list_AtomicName = ['']
+        unique_AtomicName = ['']
     
     #unique_AtomicName has at least one empty string
     if unique_AtomicName[0] !='':
@@ -97,22 +101,20 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
         unique_Zatom=[]
         for z in unique_AtomicName:
             tmp = re.search('(^[a-zA-Z]*)',z)
-            unique_Zatom.append(SymbolToFromAtomicNumber(tmp.group(0)))
+            unique_Zatom.append(symbol_to_from_atomic_number(tmp.group(0)))
 ##  ------------ Singapore Synchrotorn Light Source ---------------------------------
     TmpCrystal = () # for diff_pat.exe
     if unique_AtomicName[0] !='':   #Complex crystal
-        TmpCrystal = Crystal_Atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,cryst['f0coeffs'])
-        nbatom = (len(TmpCrystal[0]))
-    else:    
-        nbatom = (len(unique_Zatom))
-    txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
+        TmpCrystal = crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,f0coeffs)
+
     nbatom = (len(unique_Zatom))   #keep old nbatom
+    txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
     output_dictionary["nbatom"] = nbatom
 
     txt += "# for each element-site, the atomic number\n"
     if unique_AtomicName[0] !='':   #Complex crystal
         for i in TmpCrystal[0]:
-            i = int(i + 0.5)        #round to integer value, diff_pat not support float
+            i = int(i + 0.5)        #round to integer value, diff_pat.exe not support float ATNUM
             txt += "%d "%i
     else:    #normal crystals
         for i in unique_Zatom:
@@ -138,7 +140,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     #        unique_fraction.append(list_fraction[i])
             unique_fraction.append(1)
             txt += "%g "%(unique_fraction[i])
-    else:
+    else:   #complex crystal with charge
          for z in TmpCrystal[1]:  #fractional
              unique_fraction.append(z)
              txt += "%g "%(z)
@@ -187,7 +189,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     # X.J. Yu, slsyxj@nus.edu.sg
     # A dummy dictionary Aniso with start =0 if no aniso temperature factor input
     # start
-    if cryst['Aniso'][0]['start']>0:
+    if 'Aniso' in cryst.keys() and cryst['Aniso'][0]['start']>0:    #most crystals have no Anisotropic input
         TFac = TemperFactor( 1.0/(2.0*dspacing*1e8),cryst['Aniso'],Miller={'h':hh,'k':kk,'l':ll}, \
             cell={'a':cryst['a'],'b':cryst['b'],'c':cryst['c']},n=len(atom))
         B_TFac = 1
@@ -235,13 +237,12 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     #Comment: X.J. Yu, slsyxj@nus.edu.sg 
     #For complicate compound crystal, we use unique_AtomicName instead of atomic number to get f0
     #
-        if unique_AtomicName[0] !='':   #with compound name input
+        if unique_AtomicName[0] !='':   #with compound crystal name input
             tmp1 = re.search('(^[a-zA-Z]*)',unique_AtomicName[i])
             if tmp1.group(0) == unique_AtomicName[i]:   #AtomicName only, without valence info (i.e., B, Y, O)
                 tmp = f0_xop(zeta)
             else:   
-                #tmp = f0_xop(0,AtomicName=unique_AtomicName[i])
-                tmp = cryst['f0coeffs'][unique_AtomicName[i]]
+                tmp = f0coeffs[unique_AtomicName[i]]
         else:
             tmp = f0_xop(zeta)
         # print(("%g "*11)%(tmp.tolist()))
@@ -271,9 +272,9 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     output_dictionary["npoint"] = npoint
     txt += "# for each energy point, energy, F1(1),F2(1),...,F1(nbatom),F2(nbatom)\n"
     list_energy = []
-    out_f1 = numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
-    out_f2 = numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
-    out_fcompton = numpy.zeros( (len(unique_Zatom),npoint), dtype=complex)
+    out_f1 =        numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
+    out_f2 =        numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
+    out_fcompton =  numpy.zeros( (len(unique_Zatom),npoint), dtype=complex)
     for i in range(npoint):
         energy = (emin+estep*i)
         txt += ("%20.11e \n") % (energy)
@@ -286,7 +287,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
         for j,zeta in enumerate(unique_Zatom):
             f1a = xraylib.Fi(int(zeta),energy*1e-3)
             f2a = -xraylib.Fii(int(zeta),energy*1e-3) # TODO: check the sign!!
-            for x in range(tmp_g.count(zeta)):
+            for x in range(tmp_g.count(zeta)):  #treat different occupation for same atoms with a input line
                 txt +=  (" %20.11e %20.11e 1.000 \n")%(f1a, f2a)
             out_f1[j,i] = f1a
             out_f2[j,i] = f2a

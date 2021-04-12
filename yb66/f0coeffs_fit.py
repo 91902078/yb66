@@ -1,6 +1,6 @@
 import numpy
 from dabax_access_f0 import get_f0_coeffs_from_dabax_file, get_f0_from_f0coeff
-from SymbolToFromAtomicNumber import SymbolToFromAtomicNumber
+from symbol_to_from_atomic_number import symbol_to_from_atomic_number
 from scipy.optimize import curve_fit
 
 """
@@ -11,7 +11,22 @@ Interpolation of f0 coefficients for a fractional charged atom
 def func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
     return get_f0_from_f0coeff([a1, a2, a3, a4, a5, a6, a7, a8, a9], q)
 
-def Crystal_get_f0coeffs(AtomicList):
+def get_f0_coeffs(atoms, list_Zatom):
+    """
+    Return a Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
+    """
+    AtomicChargeList = {}
+    #first row is atomic number, it is integer
+    UniqueAtomicNumber = list(sorted(set(list_Zatom)))
+    charge = [ atoms[i]['charge'] for i in range(len(atoms))]         
+    for x in  UniqueAtomicNumber:
+        AtomicChargeList[str(x)]= [] 
+    for i,x in enumerate(list_Zatom):
+        if charge[i] not in AtomicChargeList[str(int(x))]:
+            AtomicChargeList[str(int(x))].append(charge[i])      #Charge value
+    return crystal_get_f0_coeffs(AtomicChargeList.items())
+
+def crystal_get_f0_coeffs(AtomicList):
     """
     Input: AtomicList, a list of tuple {(5,[-0.0455,]), (39,[3,])}, same atom allows with different charge
     Out:   A Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
@@ -22,7 +37,7 @@ def Crystal_get_f0coeffs(AtomicList):
     qq = numpy.linspace(0,2,1000)       #q = 0 to 2
     for x in AtomicList:
         n = int(x[0])       #atomic number
-        sym = SymbolToFromAtomicNumber(n)
+        sym = symbol_to_from_atomic_number(n)
         f0 = get_f0_coeffs_from_dabax_file(entry_name=sym)
         if len(f0) == 0:
                 raise("cannot find f0 coefficients for '" + sym + "'")
