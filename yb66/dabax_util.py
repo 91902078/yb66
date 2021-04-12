@@ -3,6 +3,7 @@ import numpy
 from urllib.request import urlretrieve
 from silx.io.specfile import SpecFile
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
+from scipy.optimize import curve_fit
 
 """
 X.J. YU, xiaojiang@nus.edu.sg, M. Sanchez del Rio srio@esrf.eu
@@ -27,6 +28,10 @@ def get_dabax_file(filename, url="http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"):
 #
 # f0
 #
+
+def func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
+    return get_f0_from_f0coeff([a1, a2, a3, a4, a5, a6, a7, a8, a9], q)
+
 def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat"):
     error_flag = get_dabax_file(filename)
     if error_flag == False:
@@ -45,10 +50,9 @@ def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat
             index_found = index
 
     if flag_found:
-        return numpy.array(sf[index_found].data)[:,0]
+        return (sf[index_found].data)[:,0]
     else:
-        raise(Exception("Entry name not found: %s" % entry_name))
-
+        return []
 
 def get_f0_from_f0coeff(f0coeff, ratio):
 

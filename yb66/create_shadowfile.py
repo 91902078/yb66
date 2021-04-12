@@ -93,7 +93,7 @@ def crystal_shadow(filename, str, phot_in):
 
         R_LAM0 = TOCM / phot  # ;wavelength in cm
         SIN_GRA = R_LAM0 / 2 / D_SPACING
-        theta = math.asin(SIN_GRA)
+        theta = numpy.arcsin(SIN_GRA)
 
         REFRAC = (1.0 + 0.0j) - R_LAM0 * R_LAM0 * RN * F_0 / TWOPI
         DELTA = 1.0 - REFRAC.real
