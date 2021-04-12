@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     import xraylib
 
-    if False:
+    if True:
         #
         # testing new parser against xraylib...
         #
@@ -154,23 +154,23 @@ if __name__ == "__main__":
                 print(key, dict_xraylib[key], dict_parser[key])
 
 
+    # #
+    # # new entry
+    # #
     #
-    # new entry
+    # # local
+    # dict = crystal_parser(filename='YB66_2.dat', entry_name='YB66')
+    # print(dict)
     #
-
-    # local
-    dict = crystal_parser(filename='YB66_2.dat', entry_name='YB66')
-    print(dict)
-
-
-    # remote
-
-    # delete old file if exists
-    try:
-        import os
-        os.remove("Crystals.dat")
-    except:
-        pass
-
-    dict = crystal_parser(filename='Crystals.dat', entry_name='YB66')
-    print(dict)
+    #
+    # # remote
+    #
+    # # delete old file if exists
+    # try:
+    #     import os
+    #     os.remove("Crystals.dat")
+    # except:
+    #     pass
+    #
+    # dict = crystal_parser(filename='Crystals.dat', entry_name='YB66')
+    # print(dict)
