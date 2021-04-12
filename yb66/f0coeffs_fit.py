@@ -153,7 +153,7 @@ if __name__ == "__main__":
     #
     # add this block to f0_InterTables.dat
     #
-    print("\n#S  5  B3+\n#N 9\n#L a1  a2  a3  a4  c  b1  b2  b3  b4\n"+"%g "*9 % (tuple(popt_B3plus)))
+    print("\n#S  5  B3+\n#N 9\n#L a1  a2  a3  a4  c  b1  b2  b3  b4\n"+"%g "*9 % (tuple(popt_Bdot)))
 
     #
     # test remote B3+
