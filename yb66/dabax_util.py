@@ -3,8 +3,6 @@ import numpy
 from urllib.request import urlretrieve
 from silx.io.specfile import SpecFile
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
-from f0coeffs_fit import crystal_get_f0_coeffs
-from symbol_to_from_atomic_number import symbol_to_from_atomic_number
 
 """
 X.J. YU, xiaojiang@nus.edu.sg, M. Sanchez del Rio srio@esrf.eu
@@ -26,6 +24,9 @@ def get_dabax_file(filename, url="http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"):
     except:
         return False
 
+#
+# f0
+#
 def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat"):
     error_flag = get_dabax_file(filename)
     if error_flag == False:
@@ -57,6 +58,89 @@ def get_f0_from_f0coeff(f0coeff, ratio):
         F0 += f0coeff[i] * numpy.exp(-1.0 * f0coeff[i + icentral + 1] * ratio ** 2)
     return F0
 
+def get_f0_coeffs(atoms, list_Zatom):
+    """
+    Return a Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
+    """
+    AtomicChargeList = {}
+    #first row is atomic number, it is integer
+    UniqueAtomicNumber = list(sorted(set(list_Zatom)))
+    charge = [ atoms[i]['charge'] for i in range(len(atoms))]
+    for x in  UniqueAtomicNumber:
+        AtomicChargeList[str(x)]= []
+    for i,x in enumerate(list_Zatom):
+        if charge[i] not in AtomicChargeList[str(int(x))]:
+            AtomicChargeList[str(int(x))].append(charge[i])      #Charge value
+    return crystal_get_f0_coeffs(AtomicChargeList.items())
+
+def crystal_get_f0_coeffs(AtomicList):
+    """
+    Input: AtomicList, a list of tuple {(5,[-0.0455,]), (39,[3,])}, same atom allows with different charge
+    Out:   A Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
+    """
+    f0coeffs = {}
+    searchChargeNameNeg = ['1-','2-','3-','4-','5-','6-','7-']
+    searchChargeNamePos = ['1+','2+','3+','4+','5+','6+','7+']
+    qq = numpy.linspace(0,2,1000)       #q = 0 to 2
+    for x in AtomicList:
+        n = int(x[0])       #atomic number
+        sym = symbol_to_from_atomic_number(n)
+        f0 = get_f0_coeffs_from_dabax_file(entry_name=sym)
+        if len(f0) == 0:
+                raise("cannot find f0 coefficients for '" + sym + "'")
+        for charge in x[1]: #may have multiple valences for same atom, B1+, B2+, etc
+            k = int(charge)
+            f01 = []
+            if charge < 0:
+                if k == charge:  #integer charge
+                    f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + searchChargeNameNeg[abs(k)-1])
+                if len(f01) == 0:
+                    ff = []
+                    for i,s in enumerate(searchChargeNameNeg):
+                        f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
+                        if len(f01) > 0:
+                            ff.append((-i-1,f01))
+                            if (i+1) > abs(k):      #already find one with valence higher than atom carried charge
+                                break
+                    if len(ff) > 0:
+                        f01 = ff[-1]
+
+            if len(f01) == 0 and 0 != charge:  #not get a f0 in negative charge direction
+                ff = []
+                for i,s in enumerate(searchChargeNamePos):  #try to find one with positive charge
+                    f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
+                    if len(f01) > 0:
+                        ff.append((i+1,f01))
+                        if (i+1) > abs(k) or charge < 0:
+                            break
+                if len(ff) > 0:
+                    f01 = ff[-1]
+
+            if charge == 0: #always no fit for neutral atom
+                f0coeffs[sym] = f0
+                continue
+            #following for charged atom
+            if len(f01) == 0:
+                raise("No 2nd atom found for linear fit f0 coefficients")
+            if charge == f01[0]: #if charged atom already listed, just get it, no fit
+                f0coeffs[sym+f'%+g'%charge] = f01[1]
+                continue
+
+            #do fitting here
+            f0_1 = get_f0_from_f0coeff(f0, qq)
+            f0_2 = get_f0_from_f0coeff(f01[1], qq)
+            f00  = f0_1 + charge / f01[0] * (f0_2 - f0_1)
+            p0 = f0         #neutral f0 for p0
+            #if 2nd atom with valence closer to charge, use it instead of neutral atom
+            if abs(charge-f01[0]) < abs(charge):
+                p0 = f01[1]
+            f00_fit, pcov_fit = curve_fit(func, qq, f00, p0=p0)
+            f0coeffs[sym+f'%+g'%charge] = f00_fit
+    return  f0coeffs
+
+#
+# crystal
+#
 def crystal_parser(filename='Crystals.dat', entry_name='YB66'):
     """
     parse a complex crystal structure file into a dictionary (like xraylib)
@@ -169,6 +253,7 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66'):
  
     return cryst
 
+
 def crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction, f0coeffs):
     """
     To get the atom and fractional factor in diffierent sites
@@ -221,4 +306,40 @@ def Crystal_GetCrystalsList():
         crystals.append(name.split(' ')[1])
     
     return crystals
-    
+
+
+#
+# tools
+#
+
+def symbol_to_from_atomic_number(ATOM):
+    atoms = [ [1 ,"H"] ,[2 ,"He"] ,[3 ,"Li"] ,[4 ,"Be"] ,[5 ,"B"] ,[6 ,"C"] ,[7 ,"N"] ,[8 ,"O"] ,[9 ,"F"] ,[10 ,"Ne"], \
+                 [11 ,"Na"] ,[12 ,"Mg"] ,[13 ,"Al"] ,[14 ,"Si"] ,[15 ,"P"] ,[16 ,"S"] ,[17 ,"Cl"] ,[18 ,"Ar"] ,[19 ,"K"]
+             ,[20 ,"Ca"], \
+                 [21 ,"Sc"] ,[22 ,"Ti"] ,[23 ,"V"] ,[24 ,"Cr"] ,[25 ,"Mn"] ,[26 ,"Fe"] ,[27 ,"Co"] ,[28 ,"Ni"] ,[29 ,"Cu"]
+             ,[30 ,"Zn"], \
+                 [31 ,"Ga"] ,[32 ,"Ge"] ,[33 ,"As"] ,[34 ,"Se"] ,[35 ,"Br"] ,[36 ,"Kr"] ,[37 ,"Rb"] ,[38 ,"Sr"] ,[39 ,"Y"]
+             ,[40 ,"Zr"], \
+                 [41 ,"Nb"] ,[42 ,"Mo"] ,[43 ,"Tc"] ,[44 ,"Ru"] ,[45 ,"Rh"] ,[46 ,"Pd"] ,[47 ,"Ag"] ,[48 ,"Cd"] ,[49 ,"In"]
+             ,[50 ,"Sn"], \
+                 [51 ,"Sb"] ,[52 ,"Te"] ,[53 ,"I"] ,[54 ,"Xe"] ,[55 ,"Cs"] ,[56 ,"Ba"] ,[57 ,"La"] ,[58 ,"Ce"] ,[59 ,"Pr"]
+             ,[60 ,"Nd"], \
+                 [61 ,"Pm"] ,[62 ,"Sm"] ,[63 ,"Eu"] ,[64 ,"Gd"] ,[65 ,"Tb"] ,[66 ,"Dy"] ,[67 ,"Ho"] ,[68 ,"Er"] ,[69 ,"Tm"]
+             ,[70 ,"Yb"], \
+                 [71 ,"Lu"] ,[72 ,"Hf"] ,[73 ,"Ta"] ,[74 ,"W"] ,[75 ,"Re"] ,[76 ,"Os"] ,[77 ,"Ir"] ,[78 ,"Pt"] ,[79 ,"Au"]
+             ,[80 ,"Hg"], \
+                 [81 ,"Tl"] ,[82 ,"Pb"] ,[83 ,"Bi"] ,[84 ,"Po"] ,[85 ,"At"] ,[86 ,"Rn"] ,[87 ,"Fr"] ,[88 ,"Ra"] ,[89 ,"Ac"]
+             ,[90 ,"Th"], \
+                 [91 ,"Pa"] ,[92 ,"U"] ,[93 ,"Np"] ,[94 ,"Pu"] ,[95 ,"Am"] ,[96 ,"Cm"] ,[97 ,"Bk"] ,[98 ,"Cf"] ,[99 ,"Es"]
+             ,[100 ,"Fm"], \
+                 [101 ,"Md"] ,[102 ,"No"] ,[103 ,"Lr"] ,[104 ,"Rf"] ,[105 ,"Db"] ,[106 ,"Sg"] ,[107 ,"Bh"] 	]
+
+    if isinstance(ATOM ,int):
+        for a in atoms:
+            if a[0] == ATOM:
+                return a[1]
+    for a in atoms:
+        if a[1] == ATOM:
+            return int(a[0])
+
+    raise Exception("Why are you here?")

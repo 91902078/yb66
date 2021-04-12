@@ -1,8 +1,5 @@
-import sys
 import numpy
 from xoppy_xraylib_util2 import crystal_fh2, bragg_calc2
-import math
-
 
 
 if __name__ == "__main__":
