@@ -33,11 +33,15 @@ def func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
     return get_f0_from_f0coeff([a1, a2, a3, a4, a5, a6, a7, a8, a9], q)
 
 def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat"):
-    error_flag = get_dabax_file(filename)
-    if error_flag == False:
-        raise(FileNotFoundError)
 
-    sf = SpecFile(filename)
+    if getattr(get_f0_coeffs_from_dabax_file,'sf') is not None:
+        sf = getattr(get_f0_coeffs_from_dabax_file,'sf')
+    else:    
+        error_flag = get_dabax_file(filename)
+        if error_flag == False:
+            raise(FileNotFoundError)
+        sf = SpecFile(filename)
+        get_f0_coeffs_from_dabax_file.sf = sf
 
     flag_found = False
 
@@ -53,6 +57,7 @@ def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat
         return (sf[index_found].data)[:,0]
     else:
         return []
+setattr(get_f0_coeffs_from_dabax_file,'sf',None)
 
 def get_f0_from_f0coeff(f0coeff, ratio):
 
