@@ -175,5 +175,5 @@ if __name__ == "__main__":
                                             emin=ENERGY,emax=ENERGY_END,estep=estep,fileout=None)   #50eV, replaced with estep
 
     if SHADOW_NAME=='':
-        SHADOW_NAME = descriptor + '_' + str(HMILLER) + str(KMILLER) + str(LMILLER) + '_sha.dat'
+        SHADOW_NAME = f'%s_%d%d%d_sha.dat'%(descriptor,HMILLER,KMILLER,LMILLER)
     crystal_shadow(SHADOW_NAME,bragg_dictionary,energy)    

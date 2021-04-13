@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
         import argparse
         parser = argparse.ArgumentParser(description='Calculation structure factor')
-        args = parser.parse_args()
+        #args = parser.parse_args()
 
 
         parser.add_argument('-n','--name',dest='descriptor', default=['YB66'],type=str, nargs=1, help='Crystal name')
