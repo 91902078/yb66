@@ -147,3 +147,33 @@ if __name__ == "__main__":
             elif ANISOTROPY == 3:
                 f.write("%s\n"%FILECOMPLIANCE)
 
+
+    from create_xcrystal_bra_Si import run_crystal
+
+    run_crystal(
+        MOSAIC = 0,
+        GEOMETRY = 0,
+        SCAN = 2,
+        UNIT = 1,
+        SCANFROM = -100.0,
+        SCANTO = 100.0,
+        SCANPOINTS = 200,
+        ENERGY = 8040.0,
+        ASYMMETRY_ANGLE = 0.0,
+        THICKNESS = 0.7,
+        MOSAIC_FWHM = 0.1,
+        RSAG = 125.0,
+        RMER = 1290.0,
+        ANISOTROPY = 0,
+        POISSON = 0.22,
+        CUT = "2 -1 -1 ; 1 1 1 ; 0 0 0",
+        FILECOMPLIANCE = "mycompliance.dat")
+
+    a = numpy.loadtxt("diff_pat.dat",skiprows=5)
+
+    #
+    # comparison
+    #
+
+    from srxraylib.plot.gol import plot
+    plot(a[:, 0], a[:, -1])
