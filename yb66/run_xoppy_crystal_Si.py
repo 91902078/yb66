@@ -123,10 +123,18 @@ def run_crystal(
             # elif ANISOTROPY == 3:
             #     f.write("%s\n" % FILECOMPLIANCE)
 
+    # if platform.system() == "Windows":
+    #     command = "\"" + os.path.join(locations.home_bin(), 'diff_pat.exe\" < xoppy.inp')
+    # else:
+    #     command = "'" + os.path.join(locations.home_bin(), 'diff_pat') + "' < xoppy.inp"
+
     if platform.system() == "Windows":
-        command = "\"" + os.path.join(locations.home_bin(), 'diff_pat.exe\" < xoppy.inp')
-    else:
-        command = "'" + os.path.join(locations.home_bin(), 'diff_pat') + "' < xoppy.inp"
+        command = "diff_pat.exe < xoppy.inp"
+    elif platform.system() == "Darwin":
+        command = "./diff_pat.darwin < xoppy.inp"
+    elif platform.system() == "Linux":
+        command = "./diff_pat.linux  < xoppy.inp"
+
     print("Running command '%s' in directory: %s " % (command, locations.home_bin_run()))
     print("\n--------------------------------------------------------\n")
     os.system(command)
