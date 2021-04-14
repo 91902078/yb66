@@ -107,9 +107,12 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     if unique_AtomicName[0] !='':   #Complex crystal
         TmpCrystal = crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,f0coeffs)
 
-    nbatom = (len(unique_Zatom))   #keep old nbatom
-    txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
-    output_dictionary["nbatom"] = nbatom
+    nbatom = (len(unique_Zatom))
+    if unique_AtomicName[0] =='':
+        txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
+    else:    
+        txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % len(TmpCrystal[0])
+    output_dictionary["nbatom"] = nbatom    # different with diff_pat for complex crystal
 
     txt += "# for each element-site, the atomic number\n"
     if unique_AtomicName[0] !='':   #Complex crystal
@@ -161,7 +164,10 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     if len(TmpCrystal) > 0:    #complex crystal
         for i in TmpCrystal[1]:
             txt += "%5.3f "%temper      #for diff_pat.exe 
+    print("164.....")
     for i in range(len(unique_Zatom)):
+        if len(TmpCrystal) == 0:
+            txt += "%5.3f "%temper
         list_temper.append(temper)
     txt += "\n"
     output_dictionary["temper"] = list_temper   #not necessary same with diff_pat

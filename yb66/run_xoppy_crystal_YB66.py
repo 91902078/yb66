@@ -148,7 +148,7 @@ if __name__ == "__main__":
                 f.write("%s\n"%FILECOMPLIANCE)
 
 
-    from create_xcrystal_bra_Si import run_crystal
+    from run_xoppy_crystal_Si import run_crystal
 
     run_crystal(
         MOSAIC = 0,
