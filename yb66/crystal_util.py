@@ -117,8 +117,9 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     txt += "# for each element-site, the atomic number\n"
     if unique_AtomicName[0] !='':   #Complex crystal
         for i in TmpCrystal[0]:
-            i = int(i + 0.5)        #round to integer value, diff_pat.exe not support float ATNUM
-            txt += "%d "%i
+            #i = int(i + 0.5)        #round to integer value, diff_pat.exe not support float ATNUM
+            #txt += "%d "%i
+            txt += "%f "%i
     else:    #normal crystals
         for i in unique_Zatom:
             txt += "%d "%i
@@ -164,7 +165,6 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     if len(TmpCrystal) > 0:    #complex crystal
         for i in TmpCrystal[1]:
             txt += "%5.3f "%temper      #for diff_pat.exe 
-    print("164.....")
     for i in range(len(unique_Zatom)):
         if len(TmpCrystal) == 0:
             txt += "%5.3f "%temper
