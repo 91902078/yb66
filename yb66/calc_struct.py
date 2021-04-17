@@ -31,7 +31,7 @@ if __name__ == "__main__":
         bragg_dictionary = bragg_calc2(descriptor=descriptor,hh=HMILLER,kk=KMILLER,ll=LMILLER,temper=1.0,
                                                 emin=ENERGY,emax=ENERGY_END,estep=estep,fileout=None)   #50eV, replaced with estep
         energy = numpy.linspace(ENERGY,ENERGY_END,NPOINTS)
-
+        print("\nCrystal = %s, Miller Index = (%d,%d,%d)\n" % (descriptor,HMILLER,KMILLER,LMILLER))
         for i,ienergy in enumerate(energy):
             dic2 = crystal_fh2(bragg_dictionary,ienergy)
             print("Energy=%g eV FH=(%g,%g)"%(ienergy,dic2["STRUCT"].real,dic2["STRUCT"].imag))
@@ -54,9 +54,9 @@ if __name__ == "__main__":
                                        fileout=None)
 
         energy = numpy.linspace(emin, emax, 1 + int( (emax-emin) / (estep)))
-
+        print("\nCrystal = %s, Miller Index = (%d,%d,%d)\n" % ("YB66",4,0,0))
         for i, ienergy in enumerate(energy):
             dic2 = crystal_fh2(bragg_dictionary, ienergy)
 
-            print("Energy=%g eV FH=(%g,%g)" % (ienergy, dic2["STRUCT"].real, dic2["STRUCT"].imag))
+            print("Energy=%g eV F(0,0,0)=%s, FH=(%g,%g)" % (ienergy, repr(dic2["F_0"]), dic2["STRUCT"].real, dic2["STRUCT"].imag))
 

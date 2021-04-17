@@ -1,3 +1,4 @@
+import sys
 import xraylib
 import numpy
 import os
@@ -106,7 +107,6 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     TmpCrystal = () # for diff_pat.exe
     if unique_AtomicName[0] !='':   #Complex crystal
         TmpCrystal = crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,f0coeffs)
-
     nbatom = (len(unique_Zatom))
     if unique_AtomicName[0] =='':
         txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
@@ -208,31 +208,29 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     txt += "# for each type of element-site, G and G_BAR (both complex)\n"
     list_g = []
     list_g_bar = []
-    tmp_g={}        #add for diff_pat.exe, multiple different sites with same atom
-    for z in unique_Zatom:
-        ga = 0.0 + 0j
-        for i,zz in enumerate(list_Zatom):
-        # comment out by X.J. Yu
-        # add multiplied by occupancy and temperature factor
-        #            if zz == z:
-        #               ga += numpy.exp(2j*numpy.pi*(hh*list_x[i]+kk*list_y[i]+ll*list_z[i]))
-            if zz == z:
-                if B_TFac:
-                    TCoff = TFac[ANISO_SEL,i]
-                else:
-                    TCoff = 1
-                ga += numpy.exp(2j*numpy.pi*(hh*list_x[i]+kk*list_y[i]+ll*list_z[i]))*list_fraction[i]*TCoff
-        if len(TmpCrystal) == 0: #normal crystal
+    ss = [numpy.exp(2j*numpy.pi*(hh*list_x[i]+kk*list_y[i]+ll*list_z[i]))*list_fraction[i] for i in range(len(list_x))]
+    if B_TFac:
+        TCoff = TFac[ANISO_SEL,:]
+        ss = ss*TCoff           #multiple Anisotropic factor
+    if unique_AtomicName[0] =='': #normal crystal
+        for z in unique_Zatom:
+            ga = numpy.sum(numpy.where(numpy.array(list_Zatom)==z,ss,0))
             txt += "(%g,%g) \n"%(ga.real,ga.imag)
             txt += "(%g,%g) \n"%(ga.real,-ga.imag)
-        else:  #temporay save here
-            tmp_g[str(z)] =  [(ga.real,ga.imag),(ga.real,-ga.imag)]
-        list_g.append(ga)
-        list_g_bar.append(ga.conjugate())
-    if len(TmpCrystal) > 0: #for diff_pat.exe
-        for z in TmpCrystal[3]: #receive the G for atom at each site
-            txt += "(%g,%g) \n"%tmp_g[str(z)][0]
-            txt += "(%g,%g) \n"%tmp_g[str(z)][1]
+            list_g.append(ga)
+            list_g_bar.append(ga.conjugate())
+    else:  #complex crystal
+        for z in unique_AtomicName:
+            ga = numpy.sum(numpy.where(numpy.array(list_AtomicName)==z,ss,0))
+            list_g.append(ga)
+            list_g_bar.append(ga.conjugate())
+        ss = ss/list_fraction  #fraction handled in diff_pat.exe
+        for i,z in enumerate(TmpCrystal[4]): #prepare G for xcraystal.bra, z is unique name
+            s2 = TmpCrystal[1][i]       #fraction
+            s3 = numpy.where(numpy.array(list_AtomicName)==z,list_fraction,0)  #get fraction from unique name
+            ga = numpy.sum(numpy.where(s3==s2,ss,0))
+            txt += "(%g,%g) \n"%(ga.real,ga.imag)
+            txt += "(%g,%g) \n"%(ga.real,-ga.imag)
     output_dictionary["G"] = list_g
     output_dictionary["G_BAR"] = list_g_bar
     #

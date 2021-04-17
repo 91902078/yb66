@@ -271,7 +271,8 @@ def crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction
     unique_Zatom:    list of unique atomic number
     list_fraction: list of unique fractial factor
 
-    return: num_e, fract, n_atom, list of number of electrons for atom with same fractional factor, and  corresponding fractional factor, atomic number
+    return: (num_e, fract, n_atom, n_name)
+    (number of electrons, fraction, atomic sites, Unique name)
     """
     import re
     from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
@@ -280,6 +281,7 @@ def crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction
     fract = []
     n_atom = []
     n_ATUM = []
+    n_name = []
     for k,x in enumerate(unique_AtomicName):
         tmp1 = re.search('(^[a-zA-Z]*)',x)
         if tmp1.group(0) == x:   #AtomicName only, without valence info (i.e., B, Y, O)
@@ -300,8 +302,9 @@ def crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction
             fract.append(y)
             n_atom.append(n)
             n_ATUM.append(unique_Zatom[k])
+            n_name.append(x)
 
-    return num_e.copy(), fract.copy(), n_atom.copy(),n_ATUM.copy()
+    return num_e.copy(), fract.copy(), n_atom.copy(),n_ATUM.copy(), n_name.copy()
 
 def Crystal_GetCrystalsList():
     """
