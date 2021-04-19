@@ -206,7 +206,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     txt += "# for each type of element-site, G and G_BAR (both complex)\n"
     list_g = []
     list_g_bar = []
-    ss = [numpy.exp(2j*numpy.pi*(hh*list_x[i]+kk*list_y[i]+ll*list_z[i]))*list_fraction[i] for i in range(len(list_x))]
+    ss =  numpy.array([numpy.exp(2j*numpy.pi*(hh*list_x[i]+kk*list_y[i]+ll*list_z[i]))*list_fraction[i] for i in range(len(list_x))])
     if B_TFac:
         TCoff = TFac[ANISO_SEL,:]
         ss = ss*TCoff           #multiple Anisotropic factor

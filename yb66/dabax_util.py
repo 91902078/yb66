@@ -209,11 +209,14 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66'):
 
     for i in range(cell_data.shape[1]):
         if cell_data.shape[0] == 5: # standard 5 columns
-            atom.append({'Zatom':int(cell_data[0,i]),
+            s = symbol_to_from_atomic_number(int(cell_data[0,i]))
+            atom.append({'AtomicName': s,
+                         'Zatom':int(cell_data[0,i]),
                          'fraction':cell_data[1,i],
                          'x': cell_data[2,i],
                          'y': cell_data[3, i],
-                         'z': cell_data[4, i],})
+                         'z': cell_data[4, i],
+                         'charge': 0.0,})
         else: # 6 columns (charge)
             #'AtomicName' required to compatible my current code
             s = symbol_to_from_atomic_number(int(cell_data[0,i]))
