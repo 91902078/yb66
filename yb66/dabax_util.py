@@ -221,7 +221,7 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66'):
             #'AtomicName' required to compatible my current code
             s = symbol_to_from_atomic_number(int(cell_data[0,i]))
             if cell_data[5, i] != 0:  #charged
-                s = s + f'%+g'%cell_data[5, i]
+                s = s + f'%+.6g'%cell_data[5, i]
             atom.append({'AtomicName': s,  
                          'Zatom':int(cell_data[0,i]),
                          'fraction':cell_data[1,i],
@@ -244,6 +244,7 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66'):
     if len(a) >0:       #found Anisotropic coefficients in the header, process it
         a=sorted(a,key=lambda x:int(x[1][0]),reverse=False)     #sort 'Start' ascendant, avoid order changed by the SpecFile
         n = 0
+        Aniso = []
         for x in a: #tuple('UANISO_COFF_B1',[1 96 0.00038 0.00044 0.00039 0 0 0])
             AnisoItem['Name']=   x[0][len(ANISO_KEY)+1:]      #get site atom name starting from 13th character 'B1', etc
             AnisoItem['start']=  int(x[1][0])
@@ -254,14 +255,13 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66'):
             AnisoItem['beta12']= float(x[1][5])
             AnisoItem['beta13']= float(x[1][6])
             AnisoItem['beta23']= float(x[1][7])
-            if n ==0:
-                Aniso = numpy.array([AnisoItem.copy()])
-            else:
-                Aniso = numpy.append(Aniso,[AnisoItem.copy()])
+            Aniso.append(AnisoItem.copy())
             n = n + 1
         cryst['Aniso'] = Aniso      #if having key 'Ansio' when there is anisotropic data,otherwise no
         cryst['n_aniso']= n
-
+    else:       #create a dummy Aniso to compatible with xraylib
+        cryst['Aniso'] = [AnisoItem.copy()]
+        cryst['n_aniso']= 1
  
     return cryst
 
@@ -287,11 +287,15 @@ def crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction
     n_name = []
     for k,x in enumerate(unique_AtomicName):
         tmp1 = re.search('(^[a-zA-Z]*)',x)
-        if tmp1.group(0) == x:   #AtomicName only, without valence info (i.e., B, Y, O)
+        if tmp1.group(0) == x:
+            #original notation,AtomicName only, without valence info (i.e., B, Y, O)   
             f0 = f0_xop(unique_Zatom[k])
         else:   
             #f0 = f0_xop(0,AtomicName=x)
-            f0 = f0coeffs[x]
+            if x in f0coeffs:  #second notation
+                f0 = f0coeffs[x]
+            else:   #first notation
+                f0 = f0_xop(0,x)    
 
         icentral = int(len(f0)/2)
         F000 = f0[icentral]

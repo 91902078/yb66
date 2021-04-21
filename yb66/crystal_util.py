@@ -40,7 +40,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     txt += "# Bragg version, Data file type\n"
     txt += "2.4 1\n"
     
-    #cryst = xraylib.Crystal_GetCrystal('YB66')
+    #cryst = xraylib.Crystal_GetCrystal(descriptor)
     cryst = crystal_parser(entry_name=descriptor)
     volume = cryst['volume']
     
@@ -83,7 +83,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     unique_Zatom = set(list_Zatom)
 ##  ------------ XJ.YU  Singapore Synchrotorn Light Source --------------------------
 ##  For backward compatible
-    if len(atom[0]) == 7:  #6 column + 1 AtomicName
+    if len(atom[0]) >= 7:  #6 column + 1 AtomicName or +1 SeqNo (xraylib)
         f0coeffs = get_f0_coeffs(atom, list_Zatom)
         list_AtomicName = [ atom[i]['AtomicName'] for i in range(len(atom))]
         unique_AtomicName = list(sorted(set(list_AtomicName)))
@@ -243,11 +243,14 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     #
         if unique_AtomicName[0] !='':   #with compound crystal name input
             tmp1 = re.search('(^[a-zA-Z]*)',unique_AtomicName[i])
-            if tmp1.group(0) == unique_AtomicName[i]:   #AtomicName only, without valence info (i.e., B, Y, O)
+            if tmp1.group(0) == unique_AtomicName[i]:   
+            #Atom name only, without suffix for valence info (i.e., B, Y, O)
                 tmp = f0_xop(zeta)
-            else:   
+            elif unique_AtomicName[i] in f0coeffs:   #second notation, 'B-0.045548', etc
                 tmp = f0coeffs[unique_AtomicName[i]]
-        else:
+            else:   #first notation 'B-.', etc
+                tmp = f0_xop(0,unique_AtomicName[i])
+        else:   # original notation only
             tmp = f0_xop(zeta)
         # print(("%g "*11)%(tmp.tolist()))
         nn = len(tmp)
@@ -368,12 +371,18 @@ def crystal_fh2(input_dictionary,phot_in,theta=None,forceratio=0):
         #X.J. Yu, slsyxj@nus.edu.sg
         F000 = numpy.zeros(nbatom)
         for j in range(nbatom):
-            icentral = int(f0coeff.shape[1]/2)
-            F0[j] = f0coeff[j,icentral]
+            #allow f0coeff contains 9 and 11 columns at the same time
+            #icentral = int(f0coeff.shape[1]/2)
+            #F0[j] = f0coeff[j,icentral]
+            f0_item = numpy.array(f0coeff[j])
+            icentral = int(len(f0_item)/2)
+            F0[j] = f0_item[icentral]
             F000[j] = F0[j] #X.J. Yu, slsyxj@nus.edu.sg
             for i in range(icentral):
-                F0[j] += f0coeff[j,i] * numpy.exp(-1.0*f0coeff[j,i+icentral+1]*ratio**2)
-                F000[j] += f0coeff[j,i]  #actual number of electrons carried by each atom, X.J. Yu, slsyxj@nus.edu.sg
+                #F0[j] += f0coeff[j,i] * numpy.exp(-1.0*f0coeff[j,i+icentral+1]*ratio**2)
+                #F000[j] += f0coeff[j,i]  #actual number of electrons carried by each atom, X.J. Yu, slsyxj@nus.edu.sg
+                F0[j] += f0_item[i] * numpy.exp(-1.0*f0_item[i+icentral+1]*ratio**2)
+                F000[j] += f0_item[i]  #actual number of electrons carried by each atom, X.J. Yu, slsyxj@nus.edu.sg
 
             # print("F0: ",F0,xraylib.FF_Rayl(int(atnum[j]),ratio))
 
