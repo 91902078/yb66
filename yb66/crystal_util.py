@@ -6,13 +6,194 @@ import scipy.constants as codata
 # X.J. Yu, slsyxj@nus.edu.sg
 # from temperature_anisotropy import TemperFactor
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
-from dabax_util import crystal_parser, crystal_atnum
-from dabax_util import get_f0_coeffs
-from dabax_util import symbol_to_from_atomic_number
+from dabax_util import crystal_parser
+from dabax_util import get_f0_coeffs_from_dabax_file, calculate_f0_from_f0coeff
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
 import re
+from scipy.optimize import curve_fit
+
 #-------------------------------------------------------------------------
 toangstroms = codata.h * codata.c / codata.e * 1e10
+
+
+
+#
+# __* are auxiliar routines not to be exported outside
+#
+
+#
+# tools
+#
+
+def __symbol_to_from_atomic_number(ATOM):
+    atoms = [ [1 ,"H"] ,[2 ,"He"] ,[3 ,"Li"] ,[4 ,"Be"] ,[5 ,"B"] ,[6 ,"C"] ,[7 ,"N"] ,[8 ,"O"] ,[9 ,"F"] ,[10 ,"Ne"], \
+                 [11 ,"Na"] ,[12 ,"Mg"] ,[13 ,"Al"] ,[14 ,"Si"] ,[15 ,"P"] ,[16 ,"S"] ,[17 ,"Cl"] ,[18 ,"Ar"] ,[19 ,"K"]
+             ,[20 ,"Ca"], \
+                 [21 ,"Sc"] ,[22 ,"Ti"] ,[23 ,"V"] ,[24 ,"Cr"] ,[25 ,"Mn"] ,[26 ,"Fe"] ,[27 ,"Co"] ,[28 ,"Ni"] ,[29 ,"Cu"]
+             ,[30 ,"Zn"], \
+                 [31 ,"Ga"] ,[32 ,"Ge"] ,[33 ,"As"] ,[34 ,"Se"] ,[35 ,"Br"] ,[36 ,"Kr"] ,[37 ,"Rb"] ,[38 ,"Sr"] ,[39 ,"Y"]
+             ,[40 ,"Zr"], \
+                 [41 ,"Nb"] ,[42 ,"Mo"] ,[43 ,"Tc"] ,[44 ,"Ru"] ,[45 ,"Rh"] ,[46 ,"Pd"] ,[47 ,"Ag"] ,[48 ,"Cd"] ,[49 ,"In"]
+             ,[50 ,"Sn"], \
+                 [51 ,"Sb"] ,[52 ,"Te"] ,[53 ,"I"] ,[54 ,"Xe"] ,[55 ,"Cs"] ,[56 ,"Ba"] ,[57 ,"La"] ,[58 ,"Ce"] ,[59 ,"Pr"]
+             ,[60 ,"Nd"], \
+                 [61 ,"Pm"] ,[62 ,"Sm"] ,[63 ,"Eu"] ,[64 ,"Gd"] ,[65 ,"Tb"] ,[66 ,"Dy"] ,[67 ,"Ho"] ,[68 ,"Er"] ,[69 ,"Tm"]
+             ,[70 ,"Yb"], \
+                 [71 ,"Lu"] ,[72 ,"Hf"] ,[73 ,"Ta"] ,[74 ,"W"] ,[75 ,"Re"] ,[76 ,"Os"] ,[77 ,"Ir"] ,[78 ,"Pt"] ,[79 ,"Au"]
+             ,[80 ,"Hg"], \
+                 [81 ,"Tl"] ,[82 ,"Pb"] ,[83 ,"Bi"] ,[84 ,"Po"] ,[85 ,"At"] ,[86 ,"Rn"] ,[87 ,"Fr"] ,[88 ,"Ra"] ,[89 ,"Ac"]
+             ,[90 ,"Th"], \
+                 [91 ,"Pa"] ,[92 ,"U"] ,[93 ,"Np"] ,[94 ,"Pu"] ,[95 ,"Am"] ,[96 ,"Cm"] ,[97 ,"Bk"] ,[98 ,"Cf"] ,[99 ,"Es"]
+             ,[100 ,"Fm"], \
+                 [101 ,"Md"] ,[102 ,"No"] ,[103 ,"Lr"] ,[104 ,"Rf"] ,[105 ,"Db"] ,[106 ,"Sg"] ,[107 ,"Bh"] 	]
+
+    if isinstance(ATOM ,int):
+        for a in atoms:
+            if a[0] == ATOM:
+                return a[1]
+    for a in atoms:
+        if a[1] == ATOM:
+            return int(a[0])
+
+    raise Exception("Why are you here?")
+
+
+def __func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
+    return calculate_f0_from_f0coeff([a1, a2, a3, a4, a5, a6, a7, a8, a9], q)
+
+def __get_f0_coeffs(atoms, list_Zatom):
+    """
+    Return a Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
+    """
+    AtomicChargeList = {}
+    #first row is atomic number, it is integer
+    UniqueAtomicNumber = list(sorted(set(list_Zatom)))
+    charge = [ atoms[i]['charge'] for i in range(len(atoms))]
+    for x in  UniqueAtomicNumber:
+        AtomicChargeList[str(x)]= []
+    for i,x in enumerate(list_Zatom):
+        if charge[i] not in AtomicChargeList[str(int(x))]:
+            AtomicChargeList[str(int(x))].append(charge[i])      #Charge value
+    return __crystal_get_f0_coeffs(AtomicChargeList.items())
+
+def __crystal_get_f0_coeffs(AtomicList):
+    """
+    Input: AtomicList, a list of tuple {(5,[-0.0455,]), (39,[3,])}, same atom allows with different charge
+    Out:   A Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
+    """
+    f0coeffs = {}
+    searchChargeNameNeg = ['1-','2-','3-','4-','5-','6-','7-']
+    searchChargeNamePos = ['1+','2+','3+','4+','5+','6+','7+']
+    qq = numpy.linspace(0,2,1000)       #q = 0 to 2
+    for x in AtomicList:
+        n = int(x[0])       #atomic number
+        sym = __symbol_to_from_atomic_number(n)
+        f0 = get_f0_coeffs_from_dabax_file(entry_name=sym)
+        if len(f0) == 0:
+                raise("cannot find f0 coefficients for '" + sym + "'")
+        for charge in x[1]: #may have multiple valences for same atom, B1+, B2+, etc
+            k = int(charge)
+            f01 = []
+            if charge < 0:
+                if k == charge:  #integer charge
+                    f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + searchChargeNameNeg[abs(k)-1])
+                if len(f01) == 0:
+                    ff = []
+                    for i,s in enumerate(searchChargeNameNeg):
+                        f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
+                        if len(f01) > 0:
+                            ff.append((-i-1,f01))
+                            if (i+1) > abs(k):      #already find one with valence higher than atom carried charge
+                                break
+                    if len(ff) > 0:
+                        f01 = ff[-1]
+
+            if len(f01) == 0 and 0 != charge:  #not get a f0 in negative charge direction
+                ff = []
+                for i,s in enumerate(searchChargeNamePos):  #try to find one with positive charge
+                    f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
+                    if len(f01) > 0:
+                        ff.append((i+1,f01))
+                        if (i+1) > abs(k) or charge < 0:
+                            break
+                if len(ff) > 0:
+                    f01 = ff[-1]
+
+            if charge == 0: #always no fit for neutral atom
+                f0coeffs[sym] = f0
+                continue
+            #following for charged atom
+            if len(f01) == 0:
+                raise("No 2nd atom found for linear fit f0 coefficients")
+            if charge == f01[0]: #if charged atom already listed, just get it, no fit
+                f0coeffs[sym+f'%+g'%charge] = f01[1]
+                continue
+
+            #do fitting here
+            f0_1 = calculate_f0_from_f0coeff(f0, qq)
+            f0_2 = calculate_f0_from_f0coeff(f01[1], qq)
+            f00  = f0_1 + charge / f01[0] * (f0_2 - f0_1)
+            p0 = f0         #neutral f0 for p0
+            #if 2nd atom with valence closer to charge, use it instead of neutral atom
+            if abs(charge-f01[0]) < abs(charge):
+                p0 = f01[1]
+            f00_fit, pcov_fit = curve_fit(__func, qq, f00, p0=p0)
+            f0coeffs[sym+f'%+g'%charge] = f00_fit
+    return  f0coeffs
+
+
+
+## TODO: simplify this routine....
+def __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction, f0coeffs):
+    """
+    To get the atom and fractional factor in diffierent sites
+    list_AtomicName:  list of all atoms in the crystal
+    unique_AtomicName:  list of unique atomicname in the list
+    unique_Zatom:    list of unique atomic number
+    list_fraction: list of unique fractial factor
+
+    return: (num_e, fract, n_atom, n_name)
+    (number of electrons, fraction, atomic sites, Unique name)
+    """
+    import re
+    from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
+
+    num_e = []
+    fract = []
+    n_atom = []
+    n_ATUM = []
+    n_name = []
+    print(">>>>>> unique_AtomicName", unique_AtomicName)
+    for k,x in enumerate(unique_AtomicName):
+        tmp1 = re.search('(^[a-zA-Z]*)',x)
+        if tmp1.group(0) == x:
+            #original notation,AtomicName only, without valence info (i.e., B, Y, O)
+            print(">>>> original notation,AtomicName only, without valence info (i.e., B, Y, O)")
+            f0 = f0_xop(unique_Zatom[k])
+        else:
+            print(">>>> second notation")
+            #f0 = f0_xop(0,AtomicName=x)
+            if x in f0coeffs:  #second notation
+                f0 = f0coeffs[x]
+            else:   #first notation
+                f0 = f0_xop(0,x)  #### TODO: fails, only one argument is passed
+
+        icentral = int(len(f0)/2)
+        F000 = f0[icentral]
+        for i in range(icentral):
+            F000 += f0[i]
+        a=[list_fraction[i] for i,v in enumerate(list_AtomicName) if v==x]
+        fac = list(set(a))
+        for y in fac:
+            n = a.count(y)
+            num_e.append(F000)
+            fract.append(y)
+            n_atom.append(n)
+            n_ATUM.append(unique_Zatom[k])
+            n_name.append(x)
+
+    return num_e.copy(), fract.copy(), n_atom.copy(),n_ATUM.copy(), n_name.copy()
+
 
 
 def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.0,estep=100.0,ANISO_SEL=0,fileout=None):
@@ -83,18 +264,39 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     unique_Zatom = set(list_Zatom)
 ##  ------------ XJ.YU  Singapore Synchrotorn Light Source --------------------------
 ##  For backward compatible
-    if len(atom[0]) >= 7:  #6 column + 1 AtomicName or +1 SeqNo (xraylib)
-        f0coeffs = get_f0_coeffs(atom, list_Zatom)
-        list_AtomicName = [ atom[i]['AtomicName'] for i in range(len(atom))]
+
+# TODO: This part must be made compatible with old code (the of block should be removed)
+
+    # this is not longer working... changed to a new flag
+    # if len(atom[0]) >= 6:  #6 column + 1 AtomicName or +1 SeqNo (xraylib)
+    total_charge = 0
+    for i in range(len(atom)):
+        total_charge += numpy.abs(atom[i]['charge'])
+
+    if total_charge != 0:
+        list_AtomicName = []
+        for i in range(len(atom)):
+            # tmp = atom[i]['AtomicName']
+            # s = symbol_to_from_atomic_number(int(cell_data[0,i]))
+            # if cell_data[5, i] != 0:  #charged
+            #     s = s + f'%+.6g'%cell_data[5, i]
+            s = __symbol_to_from_atomic_number(atom[i]['Zatom'])
+            s = s + f'%+.6g' % atom[i]['charge']
+            list_AtomicName.append( s )
+        # TODO: check this, it fails. May be because it does not know list_AtomicName ?
+        f0coeffs = __get_f0_coeffs(atom, list_Zatom)
+
         unique_AtomicName = list(sorted(set(list_AtomicName)))
-    else:  #usually normal 5 column  
+    else:  #usually normal 5 column
         """         cryst['Aniso']=[{'start':0}]
                 for i in range(len(atom)):
                     atom[i]['AtomicName']=''
-        """    
+        """
         list_AtomicName = ['']
         unique_AtomicName = ['']
-    
+
+
+
     #unique_AtomicName has at least one empty string
     if unique_AtomicName[0] !='':
         #now unique_Zatom is changed from set to list, allow duplicate atomic number
@@ -102,11 +304,12 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
         unique_Zatom=[]
         for z in unique_AtomicName:
             tmp = re.search('(^[a-zA-Z]*)',z)
-            unique_Zatom.append(symbol_to_from_atomic_number(tmp.group(0)))
+            unique_Zatom.append(__symbol_to_from_atomic_number(tmp.group(0)))
 ##  ------------ Singapore Synchrotorn Light Source ---------------------------------
     TmpCrystal = () # for diff_pat.exe
+    #TODO: this has to be modified to make it working for old and new code
     if unique_AtomicName[0] !='':   #Complex crystal
-        TmpCrystal = crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,f0coeffs)
+        TmpCrystal = __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,f0coeffs)
     nbatom = (len(unique_Zatom))
     if unique_AtomicName[0] =='':
         txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
@@ -589,3 +792,45 @@ def TemperFactor(sinTheta_lambda,anisos,Miller={'h':1,'k':1,'l':1},cell={'a':23.
         results[0,s:e] = numpy.exp(-sinTheta_lambda*sinTheta_lambda*Beq)
 
     return results
+
+
+if __name__ == "__main__":
+
+    if False:
+        #
+        # old code Si
+        #
+        from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
+        dic1a = bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
+        print(dic1a)
+
+        dic1b = crystal_fh(dic1a,8000.0)
+
+        #
+        # New code Si
+        #
+
+        dic2a = bragg_calc2(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
+        print("KEYS: ",dic2a.keys())
+        print(dic2a)
+
+        dic2b = crystal_fh(dic2a,8000.0)
+        print(dic2b["info"])
+        print("KEYS: ",dic2b.keys())
+
+
+        for key in dic1b.keys():
+            if key != "info":
+                print(">>>", key,dic1b[key],dic2b[key])
+
+
+    #
+    # New code YB66
+    #
+
+    if True:
+        dic3a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=1500,estep=100,fileout="xcrystal.bra")
+        print("KEYS: ",dic3a.keys())
+        print(dic3a)
+
+        dic3b = crystal_fh2(dic3a,8040.0)

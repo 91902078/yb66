@@ -91,89 +91,89 @@ if __name__ == "__main__":
                                             temper=TEMPER,
                                             emin=emin,emax=emax,estep=5.0,fileout="xcrystal.bra")
 
-    with open("xoppy.inp", "wt") as f:
-        f.write("xcrystal.bra\n")
-        f.write("%d\n"%MOSAIC)
-        f.write("%d\n"%GEOMETRY)
-
-        if MOSAIC == 1:
-            f.write("%g\n"%MOSAIC_FWHM)
-            f.write("%g\n"%THICKNESS)
-        else:
-            f.write("%g\n"%THICKNESS)
-            f.write("%g\n"%ASYMMETRY_ANGLE)
-
-        scan_flag = 1 + SCAN
-
-        f.write("%d\n"%scan_flag)
-
-        f.write("%19.9f\n"%ENERGY)
-
-        if scan_flag <= 3:
-            f.write("%d\n"%UNIT)
-
-        f.write("%g\n"%SCANFROM)
-        f.write("%g\n"%SCANTO)
-        f.write("%d\n"%SCANPOINTS)
-
-        if MOSAIC > 1: # bent
-            f.write("%g\n"%RSAG)
-            f.write("%g\n"%RMER)
-            f.write("0\n")
-
-            if ( (descriptor == "Si") or (descriptor == "Si2") or (descriptor == "Si_NIST") or (descriptor == "Ge") or descriptor == "Diamond"):
-                pass
-            else:  # not Si,Ge,Diamond
-                if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
-                    raise Exception("Anisotropy data not available for this crystal. Either use isotropic or use external compliance file. Please change and run again'")
-
-            f.write("%d\n"%ANISOTROPY)
-
-            if ANISOTROPY == 0:
-                f.write("%g\n"%POISSON)
-            elif ANISOTROPY == 1:
-                f.write("%d\n"%CRYSTAL_MATERIAL)
-                f.write("%g\n"%ASYMMETRY_ANGLE)
-                f.write("%d\n"%MILLER_INDEX_H)
-                f.write("%d\n"%MILLER_INDEX_K)
-                f.write("%d\n"%MILLER_INDEX_L)
-            elif ANISOTROPY == 2:
-                f.write("%d\n"%CRYSTAL_MATERIAL)
-                f.write("%g\n"%ASYMMETRY_ANGLE)
-                # TODO: check syntax for CUT: Cut syntax is: valong_X valong_Y valong_Z ; vnorm_X vnorm_Y vnorm_Z ; vperp_x vperp_Y vperp_Z
-                f.write("%s\n"%CUT.split(";")[0])
-                f.write("%s\n"%CUT.split(";")[1])
-                f.write("%s\n"%CUT.split(";")[2])
-            elif ANISOTROPY == 3:
-                f.write("%s\n"%FILECOMPLIANCE)
-
-
-    from run_xoppy_crystal_Si import run_crystal
-
-    run_crystal(
-        MOSAIC = 0,
-        GEOMETRY = 0,
-        SCAN = 2,
-        UNIT = 1,
-        SCANFROM = -100.0,
-        SCANTO = 100.0,
-        SCANPOINTS = 200,
-        ENERGY = 8040.0,
-        ASYMMETRY_ANGLE = 0.0,
-        THICKNESS = 0.7,
-        MOSAIC_FWHM = 0.1,
-        RSAG = 125.0,
-        RMER = 1290.0,
-        ANISOTROPY = 0,
-        POISSON = 0.22,
-        CUT = "2 -1 -1 ; 1 1 1 ; 0 0 0",
-        FILECOMPLIANCE = "mycompliance.dat")
-
-    a = numpy.loadtxt("diff_pat.dat",skiprows=5)
-
+    # with open("xoppy.inp", "wt") as f:
+    #     f.write("xcrystal.bra\n")
+    #     f.write("%d\n"%MOSAIC)
+    #     f.write("%d\n"%GEOMETRY)
     #
-    # comparison
+    #     if MOSAIC == 1:
+    #         f.write("%g\n"%MOSAIC_FWHM)
+    #         f.write("%g\n"%THICKNESS)
+    #     else:
+    #         f.write("%g\n"%THICKNESS)
+    #         f.write("%g\n"%ASYMMETRY_ANGLE)
     #
-
-    from srxraylib.plot.gol import plot
-    plot(a[:, 0], a[:, -1])
+    #     scan_flag = 1 + SCAN
+    #
+    #     f.write("%d\n"%scan_flag)
+    #
+    #     f.write("%19.9f\n"%ENERGY)
+    #
+    #     if scan_flag <= 3:
+    #         f.write("%d\n"%UNIT)
+    #
+    #     f.write("%g\n"%SCANFROM)
+    #     f.write("%g\n"%SCANTO)
+    #     f.write("%d\n"%SCANPOINTS)
+    #
+    #     if MOSAIC > 1: # bent
+    #         f.write("%g\n"%RSAG)
+    #         f.write("%g\n"%RMER)
+    #         f.write("0\n")
+    #
+    #         if ( (descriptor == "Si") or (descriptor == "Si2") or (descriptor == "Si_NIST") or (descriptor == "Ge") or descriptor == "Diamond"):
+    #             pass
+    #         else:  # not Si,Ge,Diamond
+    #             if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
+    #                 raise Exception("Anisotropy data not available for this crystal. Either use isotropic or use external compliance file. Please change and run again'")
+    #
+    #         f.write("%d\n"%ANISOTROPY)
+    #
+    #         if ANISOTROPY == 0:
+    #             f.write("%g\n"%POISSON)
+    #         elif ANISOTROPY == 1:
+    #             f.write("%d\n"%CRYSTAL_MATERIAL)
+    #             f.write("%g\n"%ASYMMETRY_ANGLE)
+    #             f.write("%d\n"%MILLER_INDEX_H)
+    #             f.write("%d\n"%MILLER_INDEX_K)
+    #             f.write("%d\n"%MILLER_INDEX_L)
+    #         elif ANISOTROPY == 2:
+    #             f.write("%d\n"%CRYSTAL_MATERIAL)
+    #             f.write("%g\n"%ASYMMETRY_ANGLE)
+    #             # TODO: check syntax for CUT: Cut syntax is: valong_X valong_Y valong_Z ; vnorm_X vnorm_Y vnorm_Z ; vperp_x vperp_Y vperp_Z
+    #             f.write("%s\n"%CUT.split(";")[0])
+    #             f.write("%s\n"%CUT.split(";")[1])
+    #             f.write("%s\n"%CUT.split(";")[2])
+    #         elif ANISOTROPY == 3:
+    #             f.write("%s\n"%FILECOMPLIANCE)
+    #
+    #
+    # from run_xoppy_crystal_Si import run_crystal
+    #
+    # run_crystal(
+    #     MOSAIC = 0,
+    #     GEOMETRY = 0,
+    #     SCAN = 2,
+    #     UNIT = 1,
+    #     SCANFROM = -100.0,
+    #     SCANTO = 100.0,
+    #     SCANPOINTS = 200,
+    #     ENERGY = 8040.0,
+    #     ASYMMETRY_ANGLE = 0.0,
+    #     THICKNESS = 0.7,
+    #     MOSAIC_FWHM = 0.1,
+    #     RSAG = 125.0,
+    #     RMER = 1290.0,
+    #     ANISOTROPY = 0,
+    #     POISSON = 0.22,
+    #     CUT = "2 -1 -1 ; 1 1 1 ; 0 0 0",
+    #     FILECOMPLIANCE = "mycompliance.dat")
+    #
+    # a = numpy.loadtxt("diff_pat.dat",skiprows=5)
+    #
+    # #
+    # # comparison
+    # #
+    #
+    # from srxraylib.plot.gol import plot
+    # plot(a[:, 0], a[:, -1])
