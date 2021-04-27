@@ -633,12 +633,14 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
 
     # zetas = numpy.array([atom[0]["Zatom"],atom[7]["Zatom"]])
     # X.J. Yu, use ceil to round up, otherwise we may get actual max energy less than emax
+    print(">>>>>", emax,emin,estep)
     npoint  = int(numpy.ceil(( (emax - emin)/estep + 1 )))      
     txt += "# The number of energy points NPOINT: \n"
     txt +=  ("%i \n") % npoint
     output_dictionary["npoint"] = npoint
     txt += "# for each energy point, energy, F1(1),F2(1),...,F1(nbatom),F2(nbatom)\n"
     list_energy = []
+    print(">>>> npoint: ", npoint)
     out_f1 =        numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
     out_f2 =        numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
     out_fcompton =  numpy.zeros( (len(unique_Zatom),npoint), dtype=complex)
@@ -986,8 +988,10 @@ if __name__ == "__main__":
     #
 
     if True:
-        dic3a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=1500,estep=100,fileout="xcrystal.bra")
+        dic3a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=15000.0,estep=100,fileout="xcrystal.bra")
         print("KEYS: ",dic3a.keys())
         print(dic3a)
 
         dic3b = crystal_fh2(dic3a,8040.0)
+
+        print(dic3b['info'])
