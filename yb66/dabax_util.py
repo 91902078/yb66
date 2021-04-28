@@ -55,14 +55,6 @@ def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat
         return []
 #setattr(get_f0_coeffs_from_dabax_file,'sf',None)
 
-def calculate_f0_from_f0coeff(f0coeff, ratio):
-
-    icentral = len(f0coeff) // 2
-    F0 = f0coeff[icentral]
-    for i in range(icentral):
-        F0 += f0coeff[i] * numpy.exp(-1.0 * f0coeff[i + icentral + 1] * ratio ** 2)
-    return F0
-
 
 #
 # crystal
