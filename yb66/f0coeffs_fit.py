@@ -1,5 +1,6 @@
 import numpy
-from dabax_util import get_f0_coeffs_from_dabax_file, calculate_f0_from_f0coeff
+from dabax_util import get_f0_coeffs_from_dabax_file
+from f0_util import calculate_f0_from_f0coeff
 from scipy.optimize import curve_fit
 
 """
