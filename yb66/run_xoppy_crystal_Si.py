@@ -148,7 +148,6 @@ def run_crystal(
 
 if __name__ == "__main__":
 
-
     #
     # old code
     #
@@ -164,12 +163,9 @@ if __name__ == "__main__":
 
     a1 = numpy.loadtxt("diff_pat.dat",skiprows=5)
 
-
     #
     # New code
     #
-
-
 
     dic2a = bragg_calc2(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
     print("KEYS: ",dic2a.keys())

@@ -11,7 +11,7 @@ from dabax_util import crystal_parser
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
 import re
 
-from f0_util import __symbol_to_from_atomic_number, __get_f0_coeffs, f0_with_fractional_charge
+from f0_util import __symbol_to_from_atomic_number, f0_with_fractional_charge
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
 
 #-------------------------------------------------------------------------

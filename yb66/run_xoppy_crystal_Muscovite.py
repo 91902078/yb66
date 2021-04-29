@@ -140,12 +140,11 @@ def run_crystal(
 
 
 if __name__ == "__main__":
-
+    descriptor = 'Muscovite'
 
     #
     # old code
     #
-    descriptor = 'Muscovite'
     dic1a = bragg_calc(descriptor=descriptor,hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
     print("KEYS: ",dic1a.keys())
     print(dic1a)
@@ -163,21 +162,22 @@ if __name__ == "__main__":
     # New code
     #
 
-
-
     dic2a = bragg_calc2(descriptor=descriptor,hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
     print("KEYS: ",dic2a.keys())
     print(dic2a)
 
-    dic2b = crystal_fh(dic1a,8000.0)
+    dic2b = crystal_fh(dic2a,8000.0)
     print(dic2b["info"])
     print("KEYS: ",dic2b.keys())
 
+    # compare
+    try:
+        for key in dic1a.keys():
+            print(key,dic1a[key],dic2a[key])
+    except:
+        pass
 
-    for key in dic1a.keys():
-        print(key,dic1a[key],dic2a[key])
-
-
+    # TODO: this fails...
     run_crystal()
 
     a2 = numpy.loadtxt("diff_pat.dat",skiprows=5)

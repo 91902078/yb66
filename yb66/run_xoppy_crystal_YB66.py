@@ -172,8 +172,10 @@ if __name__ == "__main__":
     a = numpy.loadtxt("diff_pat.dat",skiprows=5)
 
     #
-    # comparison
+    # plot
     #
 
     from srxraylib.plot.gol import plot
     plot(a[:, 0], a[:, -1])
+
+

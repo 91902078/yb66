@@ -165,85 +165,85 @@ def __func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
 #
 # TODO: delete after switching to f0_with_fractional_charge()
 #
-def __get_f0_coeffs(atoms, list_Zatom):
-    """
-    Return a Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
-    """
-    AtomicChargeList = {}
-    #first row is atomic number, it is integer
-    UniqueAtomicNumber = list(sorted(set(list_Zatom)))
-    charge = [ atoms[i]['charge'] for i in range(len(atoms))]
-    for x in  UniqueAtomicNumber:
-        AtomicChargeList[str(x)]= []
-    for i,x in enumerate(list_Zatom):
-        if charge[i] not in AtomicChargeList[str(int(x))]:
-            AtomicChargeList[str(int(x))].append(charge[i])      #Charge value
-    return __crystal_get_f0_coeffs(AtomicChargeList.items())
-
-def __crystal_get_f0_coeffs(AtomicList):
-    """
-    Input: AtomicList, a list of tuple {(5,[-0.0455,]), (39,[3,])}, same atom allows with different charge
-    Out:   A Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
-    """
-    f0coeffs = {}
-    searchChargeNameNeg = ['1-','2-','3-','4-','5-','6-','7-']
-    searchChargeNamePos = ['1+','2+','3+','4+','5+','6+','7+']
-    qq = numpy.linspace(0,2,1000)       #q = 0 to 2
-    for x in AtomicList:
-        n = int(x[0])       #atomic number
-        sym = __symbol_to_from_atomic_number(n)
-        f0 = get_f0_coeffs_from_dabax_file(entry_name=sym)
-        if len(f0) == 0:
-                raise("cannot find f0 coefficients for '" + sym + "'")
-        for charge in x[1]: #may have multiple valences for same atom, B1+, B2+, etc
-            k = int(charge)
-            f01 = []
-            if charge < 0:
-                if k == charge:  #integer charge
-                    f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + searchChargeNameNeg[abs(k)-1])
-                if len(f01) == 0:
-                    ff = []
-                    for i,s in enumerate(searchChargeNameNeg):
-                        f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
-                        if len(f01) > 0:
-                            ff.append((-i-1,f01))
-                            if (i+1) > abs(k):      #already find one with valence higher than atom carried charge
-                                break
-                    if len(ff) > 0:
-                        f01 = ff[-1]
-
-            if len(f01) == 0 and 0 != charge:  #not get a f0 in negative charge direction
-                ff = []
-                for i,s in enumerate(searchChargeNamePos):  #try to find one with positive charge
-                    f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
-                    if len(f01) > 0:
-                        ff.append((i+1,f01))
-                        if (i+1) > abs(k) or charge < 0:
-                            break
-                if len(ff) > 0:
-                    f01 = ff[-1]
-
-            if charge == 0: #always no fit for neutral atom
-                f0coeffs[sym] = f0
-                continue
-            #following for charged atom
-            if len(f01) == 0:
-                raise("No 2nd atom found for linear fit f0 coefficients")
-            if charge == f01[0]: #if charged atom already listed, just get it, no fit
-                f0coeffs[sym+f'%+g'%charge] = f01[1]
-                continue
-
-            #do fitting here
-            f0_1 = calculate_f0_from_f0coeff(f0, qq)
-            f0_2 = calculate_f0_from_f0coeff(f01[1], qq)
-            f00  = f0_1 + charge / f01[0] * (f0_2 - f0_1)
-            p0 = f0         #neutral f0 for p0
-            #if 2nd atom with valence closer to charge, use it instead of neutral atom
-            if abs(charge-f01[0]) < abs(charge):
-                p0 = f01[1]
-            f00_fit, pcov_fit = curve_fit(__func, qq, f00, p0=p0)
-            f0coeffs[sym+f'%+g'%charge] = f00_fit
-    return  f0coeffs
+# def __get_f0_coeffs(atoms, list_Zatom):
+#     """
+#     Return a Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
+#     """
+#     AtomicChargeList = {}
+#     #first row is atomic number, it is integer
+#     UniqueAtomicNumber = list(sorted(set(list_Zatom)))
+#     charge = [ atoms[i]['charge'] for i in range(len(atoms))]
+#     for x in  UniqueAtomicNumber:
+#         AtomicChargeList[str(x)]= []
+#     for i,x in enumerate(list_Zatom):
+#         if charge[i] not in AtomicChargeList[str(int(x))]:
+#             AtomicChargeList[str(int(x))].append(charge[i])      #Charge value
+#     return __crystal_get_f0_coeffs(AtomicChargeList.items())
+#
+# def __crystal_get_f0_coeffs(AtomicList):
+#     """
+#     Input: AtomicList, a list of tuple {(5,[-0.0455,]), (39,[3,])}, same atom allows with different charge
+#     Out:   A Dict {"B-0.0455": [f0 coefficients], ..., "Y+3":[f0 coefficients],...}
+#     """
+#     f0coeffs = {}
+#     searchChargeNameNeg = ['1-','2-','3-','4-','5-','6-','7-']
+#     searchChargeNamePos = ['1+','2+','3+','4+','5+','6+','7+']
+#     qq = numpy.linspace(0,2,1000)       #q = 0 to 2
+#     for x in AtomicList:
+#         n = int(x[0])       #atomic number
+#         sym = __symbol_to_from_atomic_number(n)
+#         f0 = get_f0_coeffs_from_dabax_file(entry_name=sym)
+#         if len(f0) == 0:
+#                 raise("cannot find f0 coefficients for '" + sym + "'")
+#         for charge in x[1]: #may have multiple valences for same atom, B1+, B2+, etc
+#             k = int(charge)
+#             f01 = []
+#             if charge < 0:
+#                 if k == charge:  #integer charge
+#                     f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + searchChargeNameNeg[abs(k)-1])
+#                 if len(f01) == 0:
+#                     ff = []
+#                     for i,s in enumerate(searchChargeNameNeg):
+#                         f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
+#                         if len(f01) > 0:
+#                             ff.append((-i-1,f01))
+#                             if (i+1) > abs(k):      #already find one with valence higher than atom carried charge
+#                                 break
+#                     if len(ff) > 0:
+#                         f01 = ff[-1]
+#
+#             if len(f01) == 0 and 0 != charge:  #not get a f0 in negative charge direction
+#                 ff = []
+#                 for i,s in enumerate(searchChargeNamePos):  #try to find one with positive charge
+#                     f01 = get_f0_coeffs_from_dabax_file(entry_name=sym + s)
+#                     if len(f01) > 0:
+#                         ff.append((i+1,f01))
+#                         if (i+1) > abs(k) or charge < 0:
+#                             break
+#                 if len(ff) > 0:
+#                     f01 = ff[-1]
+#
+#             if charge == 0: #always no fit for neutral atom
+#                 f0coeffs[sym] = f0
+#                 continue
+#             #following for charged atom
+#             if len(f01) == 0:
+#                 raise("No 2nd atom found for linear fit f0 coefficients")
+#             if charge == f01[0]: #if charged atom already listed, just get it, no fit
+#                 f0coeffs[sym+f'%+g'%charge] = f01[1]
+#                 continue
+#
+#             #do fitting here
+#             f0_1 = calculate_f0_from_f0coeff(f0, qq)
+#             f0_2 = calculate_f0_from_f0coeff(f01[1], qq)
+#             f00  = f0_1 + charge / f01[0] * (f0_2 - f0_1)
+#             p0 = f0         #neutral f0 for p0
+#             #if 2nd atom with valence closer to charge, use it instead of neutral atom
+#             if abs(charge-f01[0]) < abs(charge):
+#                 p0 = f01[1]
+#             f00_fit, pcov_fit = curve_fit(__func, qq, f00, p0=p0)
+#             f0coeffs[sym+f'%+g'%charge] = f00_fit
+#     return  f0coeffs
 
 
 if __name__ == "__main__":
