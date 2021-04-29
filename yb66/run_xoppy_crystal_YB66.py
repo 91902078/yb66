@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Calculation structure factor')
     parser.add_argument('-n','--name',dest='descriptor', default=['YB66'],type=str, nargs=1, help='Crystal name')
-    parser.add_argument('-m','--m', metavar='H K L', default=[4,0,0],type=int, nargs=1, help='Miller indic [H, K, L]')
+    parser.add_argument('-m','--m', metavar='H K L', default=[4,0,0],type=int, nargs=3, help='Miller indic [H, K, L]')
     parser.add_argument('-e','--e', dest='Energy', default=[8040],type=float, nargs=1, help='Energy')
     parser.add_argument('-s','--s', dest='ScanRange', default=[-100,100,200],type=float, nargs=3, help='[SCANFROM,SCANTO,SCANPOINTS]')
     parser.add_argument('-t','--t', dest='Thickness', default=[0.7],type=float, nargs=1, help='Crystal thicknes [cm]')

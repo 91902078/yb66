@@ -11,7 +11,7 @@ from dabax_util import crystal_parser
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
 import re
 
-from f0_util import __symbol_to_from_atomic_number, __get_f0_coeffs
+from f0_util import __symbol_to_from_atomic_number, __get_f0_coeffs, f0_with_fractional_charge
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
 
 #-------------------------------------------------------------------------
@@ -146,29 +146,40 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     for i in range(len(atom)):
         total_charge += numpy.abs(atom[i]['charge'])
 
-    if total_charge != 0:
-        list_AtomicName = []
+    f0coeffs={}
+    list_AtomicName = []
+    if total_charge != 0 and 'AtomicName' not in atom[0]:
         for i in range(len(atom)):
             # tmp = atom[i]['AtomicName']
             # s = symbol_to_from_atomic_number(int(cell_data[0,i]))
             # if cell_data[5, i] != 0:  #charged
             #     s = s + f'%+.6g'%cell_data[5, i]
             s = __symbol_to_from_atomic_number(atom[i]['Zatom'])
-            s = s + f'%+.6g' % atom[i]['charge']
+            if atom[i]['charge'] != 0.0:    #if charge is 0, s is symbol only, not B0, etc
+                s = s + f'%+.6g' % atom[i]['charge']
             list_AtomicName.append( s )
+            #change to new f0 function
+            if s not in f0coeffs:
+                f0coeffs[s] = f0_with_fractional_charge(atom[i]['Zatom'],atom[i]['charge'])
         # TODO: check this, it fails. May be because it does not know list_AtomicName ?
-        f0coeffs = __get_f0_coeffs(atom, list_Zatom)
-
+        #already replaced with new f0 function above, f0_with_fractional_charge
+        #f0coeffs = __get_f0_coeffs(atom, list_Zatom)
+        
         unique_AtomicName = list(sorted(set(list_AtomicName)))
-    else:  #usually normal 5 column
-        """         cryst['Aniso']=[{'start':0}]
-                for i in range(len(atom)):
-                    atom[i]['AtomicName']=''
-        """
-        list_AtomicName = ['']
-        unique_AtomicName = ['']
-
-
+    elif 'AtomicName' in atom[0]:
+        #assume at least one atom in the crystal unit
+        #first notation, f0 is tabulated, no need to calculate with f0_with_fractional_charge
+        list_AtomicName = [ atom[i]['AtomicName'] for i in range(len(atom))]
+        unique_AtomicName = list(sorted(set(list_AtomicName)))
+        for x in unique_AtomicName:
+            f0coeffs[x] = f0_xop(0,AtomicName=x)
+        
+    else:  #usually normal 5 column, solve fractional problem for Muscovite
+        for i in range(len(atom)):
+            list_AtomicName.append( __symbol_to_from_atomic_number(atom[i]['Zatom']) )
+        unique_AtomicName = list(sorted(set(list_AtomicName)))
+        for x in unique_Zatom:
+            f0coeffs[__symbol_to_from_atomic_number(x)] = f0_xop(x)
 
     #unique_AtomicName has at least one empty string
     if unique_AtomicName[0] !='':
@@ -181,6 +192,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
 ##  ------------ Singapore Synchrotorn Light Source ---------------------------------
     TmpCrystal = () # for diff_pat.exe
     #TODO: this has to be modified to make it working for old and new code
+    #unique_AtomicName already set for all cases, no problem
     if unique_AtomicName[0] !='':   #Complex crystal
         TmpCrystal = __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,f0coeffs)
     nbatom = (len(unique_Zatom))
@@ -210,12 +222,13 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     output_dictionary["list_AtomicName"] = list(list_AtomicName)
     
     #TODO: manage correctly fraction, the ones in non-representative atoms are ignored.
+    #Now is ok
     txt += "# for each element-site, the occupation factor\n"
     unique_fraction = []
     if len(TmpCrystal) == 0:    #normal crystal
         for i in range(len(unique_Zatom)):
     #
-    #commenuts By XJ.YU, xiaojiang@nus.edu.sg
+    #comments By XJ.YU, xiaojiang@nus.edu.sg
     # for Muscovite crystal (KAl2(AlSi3)O10(OH)2), Al has two occupancy (1, 0.25), 5 atomic types
     # if using the number of unique_Zatom for unique_fraction, only first five numbers used in list_fraction
             unique_fraction.append(list_fraction[i])
