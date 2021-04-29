@@ -148,7 +148,7 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
 
     f0coeffs={}
     list_AtomicName = []
-    if total_charge != 0 and 'AtomicName' not in atom[0]:
+    if total_charge != 0:
         for i in range(len(atom)):
             # tmp = atom[i]['AtomicName']
             # s = symbol_to_from_atomic_number(int(cell_data[0,i]))
@@ -172,7 +172,11 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
         list_AtomicName = [ atom[i]['AtomicName'] for i in range(len(atom))]
         unique_AtomicName = list(sorted(set(list_AtomicName)))
         for x in unique_AtomicName:
-            f0coeffs[x] = f0_xop(0,AtomicName=x)
+            tmp = re.search('(^[a-zA-Z]*)',x)
+            if tmp.group(0) == x:
+                f0coeffs[x] = f0_with_fractional_charge(__symbol_to_from_atomic_number(x),0)
+            else:    
+                f0coeffs[x] = f0_xop(0,AtomicName=x)
         
     else:  #usually normal 5 column, solve fractional problem for Muscovite
         for i in range(len(atom)):
