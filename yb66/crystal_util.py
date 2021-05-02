@@ -1,76 +1,19 @@
-import sys
 import xraylib
 import numpy
-import os
 import scipy.constants as codata
+
+from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
+
 # X.J. Yu, slsyxj@nus.edu.sg
 # from temperature_anisotropy import TemperFactor
-from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
 from dabax_util import crystal_parser
-
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
 import re
-
 from f0_util import __symbol_to_from_atomic_number, f0_with_fractional_charge
-from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
+
 
 #-------------------------------------------------------------------------
 toangstroms = codata.h * codata.c / codata.e * 1e10
-
-
-
-
-## TODO: simplify this routine....
-def __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction, f0coeffs):
-    """
-    To get the atom and fractional factor in diffierent sites
-    list_AtomicName:  list of all atoms in the crystal
-    unique_AtomicName:  list of unique atomicname in the list
-    unique_Zatom:    list of unique atomic number
-    list_fraction: list of unique fractial factor
-
-    return: (num_e, fract, n_atom, n_name)
-    (number of electrons, fraction, atomic sites, Unique name)
-    """
-
-
-    num_e = []
-    fract = []
-    n_atom = []
-    n_ATUM = []
-    n_name = []
-    print(">>>>>> unique_AtomicName", unique_AtomicName)
-    for k,x in enumerate(unique_AtomicName):
-        tmp1 = re.search('(^[a-zA-Z]*)',x)
-        if tmp1.group(0) == x:
-            #original notation,AtomicName only, without valence info (i.e., B, Y, O)
-            print(">>>> original notation,AtomicName only, without valence info (i.e., B, Y, O)")
-            f0 = f0_xop(unique_Zatom[k])
-        else:
-            print(">>>> second notation")
-            #f0 = f0_xop(0,AtomicName=x)
-            if x in f0coeffs:  #second notation
-                f0 = f0coeffs[x]
-            else:   #first notation
-                f0 = f0_with_fractional_charge(0,x)  #### TODO: fails, only one argument is passed
-
-        icentral = int(len(f0)/2)
-        F000 = f0[icentral]
-        for i in range(icentral):
-            F000 += f0[i]
-        a=[list_fraction[i] for i,v in enumerate(list_AtomicName) if v==x]
-        fac = list(set(a))
-        for y in fac:
-            n = a.count(y)
-            num_e.append(F000)
-            fract.append(y)
-            n_atom.append(n)
-            n_ATUM.append(unique_Zatom[k])
-            n_name.append(x)
-
-    return num_e.copy(), fract.copy(), n_atom.copy(),n_ATUM.copy(), n_name.copy()
-
-
 
 def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.0,estep=100.0,ANISO_SEL=0,fileout=None):
     """
@@ -130,21 +73,27 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     atom = cryst['atom']
     list_Zatom = [ atom[i]['Zatom'] for i in range(len(atom))]
     list_fraction = [ atom[i]['fraction'] for i in range(len(atom))]
+    list_charge = [atom[i]['charge'] for i in range(len(atom))]
     list_x = [ atom[i]['x'] for i in range(len(atom))]
     list_y = [ atom[i]['y'] for i in range(len(atom))]
     list_z = [ atom[i]['z'] for i in range(len(atom))]
 
     unique_Zatom = set(list_Zatom)
+
+############
+############
+############
 ##  ------------ XJ.YU  Singapore Synchrotorn Light Source --------------------------
 ##  For backward compatible
 
-# TODO: This part must be made compatible with old code (the of block should be removed)
+# TODO: This part must be made compatible with old code (the if block should be removed)
 
     # this is not longer working... changed to a new flag
     # if len(atom[0]) >= 6:  #6 column + 1 AtomicName or +1 SeqNo (xraylib)
-    total_charge = 0
-    for i in range(len(atom)):
-        total_charge += numpy.abs(atom[i]['charge'])
+    # total_charge = 0
+    # for i in range(len(atom)):
+    #     total_charge += numpy.abs(atom[i]['charge'])
+    total_charge = numpy.abs(numpy.array(list_charge)).sum()
 
     f0coeffs={}
     list_AtomicName = []
@@ -199,11 +148,16 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
     #unique_AtomicName already set for all cases, no problem
     if unique_AtomicName[0] !='':   #Complex crystal
         TmpCrystal = __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction,f0coeffs)
+############
+############
+############
+
     nbatom = (len(unique_Zatom))
+    nbatom_new = len(TmpCrystal[0])
     if unique_AtomicName[0] =='':
         txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
     else:    
-        txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % len(TmpCrystal[0])
+        txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom_new
     output_dictionary["nbatom"] = nbatom    # different with diff_pat for complex crystal
 
     txt += "# for each element-site, the atomic number\n"
@@ -405,7 +359,6 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
             print("File written to disk: %s" % fileout)
 
     return output_dictionary
-
 
 
 
@@ -685,10 +638,63 @@ def TemperFactor(sinTheta_lambda,anisos,Miller={'h':1,'k':1,'l':1},cell={'a':23.
 
     return results
 
+## TODO: simplify this routine....
+def __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fraction, f0coeffs):
+    """
+    To get the atom and fractional factor in diffierent sites
+    list_AtomicName:  list of all atoms in the crystal
+    unique_AtomicName:  list of unique atomicname in the list
+    unique_Zatom:    list of unique atomic number
+    list_fraction: list of unique fractial factor
+
+    return: (num_e, fract, n_atom, n_name)
+    (number of electrons, fraction, atomic sites, Unique name)
+    """
+
+
+    num_e = []
+    fract = []
+    n_atom = []
+    n_ATUM = []
+    n_name = []
+    print(">>>>>> unique_AtomicName", unique_AtomicName)
+    for k,x in enumerate(unique_AtomicName):
+        tmp1 = re.search('(^[a-zA-Z]*)',x)
+        if tmp1.group(0) == x:
+            #original notation,AtomicName only, without valence info (i.e., B, Y, O)
+            print(">>>> original notation,AtomicName only, without valence info (i.e., B, Y, O)")
+            f0 = f0_xop(unique_Zatom[k])
+        else:
+            print(">>>> second notation")
+            #f0 = f0_xop(0,AtomicName=x)
+            if x in f0coeffs:  #second notation
+                f0 = f0coeffs[x]
+            else:   #first notation
+                f0 = f0_with_fractional_charge(0,x)  #### TODO: fails, only one argument is passed
+
+        icentral = int(len(f0)/2)
+        F000 = f0[icentral]
+        for i in range(icentral):
+            F000 += f0[i]
+        a=[list_fraction[i] for i,v in enumerate(list_AtomicName) if v==x]
+        fac = list(set(a))
+        for y in fac:
+            n = a.count(y)
+            num_e.append(F000)
+            fract.append(y)
+            n_atom.append(n)
+            n_ATUM.append(unique_Zatom[k])
+            n_name.append(x)
+
+    return num_e.copy(), fract.copy(), n_atom.copy(),n_ATUM.copy(), n_name.copy()
+
+
+
+
 
 if __name__ == "__main__":
 
-    if False:
+    if True:
         #
         # old code Si
         #
@@ -706,7 +712,7 @@ if __name__ == "__main__":
         print("KEYS: ",dic2a.keys())
         print(dic2a)
 
-        dic2b = crystal_fh(dic2a,8000.0)
+        dic2b = crystal_fh2(dic2a,8000.0)
         print(dic2b["info"])
         print("KEYS: ",dic2b.keys())
 
@@ -714,13 +720,18 @@ if __name__ == "__main__":
         for key in dic1b.keys():
             if key != "info":
                 print(">>>", key,dic1b[key],dic2b[key])
+                # tmp = numpy.abs(dic1b[key] - dic2b[key])
+                # if tmp.size == 1:
+                #     assert (tmp < 1e-6)
+                # else:
+                #     assert(tmp.sum() < 1e-6)
 
 
     #
     # New code YB66
     #
 
-    if True:
+    if False:
         dic3a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=15000.0,estep=100,fileout="xcrystal.bra")
         print("KEYS: ",dic3a.keys())
         print(dic3a)
@@ -728,3 +739,14 @@ if __name__ == "__main__":
         dic3b = crystal_fh2(dic3a,8040.0)
 
         print(dic3b['info'])
+        for key in dic3b.keys():
+            print(key)
+
+        print(dic3b['STRUCT'])
+        print(dic3b['FH'])
+        print(dic3b['F_0'])
+        print(dic3b['FH_BAR'])
+        assert (numpy.abs( dic3b['STRUCT'] - (565.7225232608029+35.9668881704435j)) < 1e-10)
+        assert (numpy.abs(dic3b['FH'] - (565.7225232608029+35.966888170443404j)) < 1e-10)
+        assert (numpy.abs(dic3b['FH_BAR'] - (565.7225232608029+35.96688817044359j)) < 1e-10)
+        assert (numpy.abs(dic3b['F_0'] - (8846.406209552279+56.12593721027547j)) < 1e-10)

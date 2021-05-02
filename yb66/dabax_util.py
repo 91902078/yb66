@@ -2,7 +2,9 @@ import os
 import numpy
 from urllib.request import urlretrieve
 from silx.io.specfile import SpecFile
+
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
+import scipy.constants as codata
 
 """
 X.J. YU, xiaojiang@nus.edu.sg, M. Sanchez del Rio srio@esrf.eu
@@ -190,6 +192,30 @@ def Crystal_GetCrystalsList():
     
     return crystals
 
+#
+# dabax crystal functions with the same interface as xraylib
+#
+
+#
+#
+#   TODO:
+#          F_0 = xraylib.Crystal_F_H_StructureFactor(_crystal, E_keV, h, k, l, _debyeWaller, 1.0)
+#
+#          F_H = xraylib.Crystal_F_H_StructureFactor(_crystal, E_keV, h, k, l, _debyeWaller, 1.0)
+#
+
+def Crystal_GetCrystal(descriptor):
+    return crystal_parser(filename='Crystals.dat', entry_name=descriptor)
+
+def Crystal_dSpacing(cryst, h, k, l):
+    return bragg_metrictensor(cryst['a'], cryst['b'], cryst['c'],
+                              cryst['alpha'], cryst['beta'], cryst['gamma'],
+                              HKL=[h, k, l])
+
+def Bragg_angle(cryst, E_keV, h, k, l):
+    dspacing = Crystal_dSpacing(cryst, h, k, l)  # in A
+    wavelength = codata.h * codata.c / codata.e / (E_keV * 1e3) * 1e10 # in A
+    return numpy.arcsin(wavelength / 2 / dspacing)
 
 if __name__ == "__main__":
     print(get_dabax_file("Crystals.dat"))
@@ -198,18 +224,21 @@ if __name__ == "__main__":
 
     print(crystal_parser(filename='Crystals.dat', entry_name='YB66'))
 
-    # compare with xraylib
-    xdabax = crystal_parser(filename='Crystals.dat', entry_name='Si')
+    # # compare with xraylib
+    # xdabax = crystal_parser(filename='Crystals.dat', entry_name='Si')
+    #
+    # import xraylib
+    # xxraylib = xraylib.Crystal_GetCrystal('Si')
+    #
+    # for key in xxraylib.keys():
+    #     tmp = xxraylib[key]
+    #
+    #     if isinstance(tmp, list):
+    #         for i, element in enumerate(tmp):
+    #             print(key, i, xdabax[key][i], xxraylib[key][i])
+    #     else:
+    #         print(key, xdabax[key], xxraylib[key])
 
-    import xraylib
-    xxraylib = xraylib.Crystal_GetCrystal('Si')
 
-    for key in xxraylib.keys():
-        tmp = xxraylib[key]
-
-        if isinstance(tmp, list):
-            for i, element in enumerate(tmp):
-                print(key, i, xdabax[key][i], xxraylib[key][i])
-        else:
-            print(key, xdabax[key], xxraylib[key])
-
+    print("Si 111 d-spacing: ", Crystal_dSpacing(Crystal_GetCrystal("Si"),1,1,1))
+    print("Si 111 bragg angle at 10 keV [deg]: ", 180 / numpy.pi * Bragg_angle(Crystal_GetCrystal("Si"),10, 1,1,1))

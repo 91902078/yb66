@@ -20,6 +20,7 @@ if __name__ == "__main__":
     dic1a = bragg_calc(descriptor=descriptor,hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
     print("KEYS: ",dic1a.keys())
     print(dic1a)
+    os.system("cp xcrystal.bra xcrystal.bra.old")
 
     dic1b = crystal_fh(dic1a,8000.0)
     print(dic1b["info"])
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     dic2a = bragg_calc2(descriptor=descriptor,hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
     print("KEYS: ",dic2a.keys())
     print(dic2a)
+    os.system("cp xcrystal.bra xcrystal.bra.new")
 
     dic2b = crystal_fh2(dic2a,8000.0)
     print(dic2b["info"])
