@@ -694,11 +694,12 @@ def __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fracti
 
 if __name__ == "__main__":
 
-    if True:
+    from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
+    if False:
         #
         # old code Si
         #
-        from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
+
         dic1a = bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
         print(dic1a)
 
@@ -731,22 +732,42 @@ if __name__ == "__main__":
     # New code YB66
     #
 
-    if False:
-        dic3a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=15000.0,estep=100,fileout="xcrystal.bra")
-        print("KEYS: ",dic3a.keys())
-        print(dic3a)
+    if True:
 
-        dic3b = crystal_fh2(dic3a,8040.0)
+        # dic1a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=15000.0,estep=100,fileout="xcrystal.bra")
+        # print("KEYS: ",dic1a.keys())
+        # print(dic1a)
+        #
+        # dic1b = crystal_fh2(dic1a,8040.0)
 
-        print(dic3b['info'])
-        for key in dic3b.keys():
-            print(key)
 
-        print(dic3b['STRUCT'])
-        print(dic3b['FH'])
-        print(dic3b['F_0'])
-        print(dic3b['FH_BAR'])
-        assert (numpy.abs( dic3b['STRUCT'] - (565.7225232608029+35.9668881704435j)) < 1e-10)
-        assert (numpy.abs(dic3b['FH'] - (565.7225232608029+35.966888170443404j)) < 1e-10)
-        assert (numpy.abs(dic3b['FH_BAR'] - (565.7225232608029+35.96688817044359j)) < 1e-10)
-        assert (numpy.abs(dic3b['F_0'] - (8846.406209552279+56.12593721027547j)) < 1e-10)
+        dic2a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=15000.0,estep=100,fileout="xcrystal.bra")
+        print("KEYS: ",dic2a.keys())
+        print(dic2a)
+
+        dic1b = crystal_fh(dic2a,8040.0)
+        dic2b = crystal_fh2(dic2a,8040.0)
+
+
+        for key in dic1b.keys():
+            if key != "info":
+                print(">>>", key,dic1b[key],dic2b[key])
+                # tmp = numpy.abs(dic1b[key] - dic2b[key])
+                # if tmp.size == 1:
+                #     assert (tmp < 1e-6)
+                # else:
+                #     assert(tmp.sum() < 1e-6)
+
+
+        # print(dic2b['info'])
+        # for key in dic2b.keys():
+        #     print(key)
+
+        print(dic2b['STRUCT'])
+        print(dic2b['FH'])
+        print(dic2b['FH_BAR'])
+        print(dic2b['F_0'])
+        assert (numpy.abs(dic2b['STRUCT'] - (565.7225232608029+35.9668881704435j)) < 1e-10)
+        assert (numpy.abs(dic2b['FH'] - (565.7225232608029+35.966888170443404j)) < 1e-10)
+        assert (numpy.abs(dic2b['FH_BAR'] - (565.7225232608029+35.96688817044359j)) < 1e-10)
+        assert (numpy.abs(dic2b['F_0'] - (8846.406209552279+56.12593721027547j)) < 1e-10)
