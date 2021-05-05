@@ -90,17 +90,21 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
 
     unique_indexes = [IDs.index(x) for x in set(IDs)]
 
-    unique_Zatom = [ list_Zatom[i] for i in unique_indexes]
+    unique_Zatom = [list_Zatom[i] for i in unique_indexes]
+    unique_charge = [list_charge[i] for i in unique_indexes]
+    unique_scattering_electrons = []
+    for i, Zi in enumerate(unique_Zatom):
+        unique_scattering_electrons.append(Zi - unique_charge[i])
 
     nbatom = (len(unique_Zatom))
     txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
     output_dictionary["nbatom"] = nbatom
 
-    txt += "# for each element-site, the atomic number\n"
+    txt += "# for each element-site, the number of scattering electrons (Z_i - charge_i)\n"
     for i in unique_Zatom:
         txt += "%d "%i
     txt += "\n"
-    output_dictionary["atnum"] = list(unique_Zatom)
+    output_dictionary["atnum"] = list(unique_scattering_electrons)
 
     txt += "# for each element-site, the occupation factor\n"
     unique_fraction = []
@@ -419,8 +423,8 @@ if __name__ == "__main__":
     #
     #
     #
-    descriptor = "Muscovite"
-    if True:
+
+    for descriptor in ["Muscovite", "Si"]:
         #
         # old code muscovite
         #
@@ -546,4 +550,4 @@ if __name__ == "__main__":
              a3[:, 0], a3[:, -1],
              title="Crystal: " + descriptor,
              marker=[None, "o", "+"],
-             legend=["OLD code", "FIXED code", "XIAOJIANG code"])
+             legend=["OLD code (current xoppy)", "FIXED code (this file)", "XIAOJIANG code"])

@@ -170,10 +170,20 @@ def bragg_calc2(descriptor="YB66",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=150
         for i in unique_Zatom:
             txt += "%d "%i
     txt += "\n"
-    if len(TmpCrystal) > 0:
-        output_dictionary["atnum"] = list(TmpCrystal[0])
-    else:    
-        output_dictionary["atnum"] = list(unique_Zatom)
+
+    method = 1  # 0=srio:
+                # 1=Xiaojiang F_0
+    if method == 0:  # srio
+        if unique_AtomicName[0] !='':
+            output_dictionary["atnum"] = list(TmpCrystal[0])
+        else:
+            output_dictionary["atnum"] = TmpCrystal[3]
+
+    else:
+        if len(TmpCrystal) > 0:
+            output_dictionary["atnum"] = list(TmpCrystal[0])
+        else:
+            output_dictionary["atnum"] = list(unique_Zatom)
     #XJ.YU  Singapore Synchrotorn Light Source
     output_dictionary["zcol"] = list(list_Zatom)
     output_dictionary["unique_AtomicName"] = list(unique_AtomicName)
@@ -694,10 +704,13 @@ def __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom,list_fracti
 
 if __name__ == "__main__":
 
-    from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
+    # from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
+    from crystal_util_debug_xoppy import bragg_calc, crystal_fh
+
+
     if False:
         #
-        # old code Si
+        # new xoppy
         #
 
         dic1a = bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
@@ -706,7 +719,7 @@ if __name__ == "__main__":
         dic1b = crystal_fh(dic1a,8000.0)
 
         #
-        # New code Si
+        # Xiaojiang
         #
 
         dic2a = bragg_calc2(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
@@ -717,7 +730,7 @@ if __name__ == "__main__":
         print(dic2b["info"])
         print("KEYS: ",dic2b.keys())
 
-
+        print(">>> NEW  -  XIAOJIANG")
         for key in dic1b.keys():
             if key != "info":
                 print(">>>", key,dic1b[key],dic2b[key])
@@ -727,6 +740,10 @@ if __name__ == "__main__":
                 # else:
                 #     assert(tmp.sum() < 1e-6)
 
+        # assert (numpy.abs(dic2b['STRUCT'] - dic1b['STRUCT']) < 1e-10)
+        # assert (numpy.abs(dic2b['FH']     - dic1b['FH']    ) < 1e-10)
+        # assert (numpy.abs(dic2b['FH_BAR'] - dic1b['FH_BAR']) < 1e-10)
+        # assert (numpy.abs(dic2b['F_0']    - dic1b['F_0']   ) < 1e-10)
 
     #
     # New code YB66
@@ -734,21 +751,20 @@ if __name__ == "__main__":
 
     if True:
 
-        # dic1a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=15000.0,estep=100,fileout="xcrystal.bra")
-        # print("KEYS: ",dic1a.keys())
-        # print(dic1a)
-        #
-        # dic1b = crystal_fh2(dic1a,8040.0)
-
 
         dic2a = bragg_calc2(descriptor="YB66",hh=4,kk=0,ll=0,temper=1.0,emin=5000.0,emax=15000.0,estep=100,fileout="xcrystal.bra")
         print("KEYS: ",dic2a.keys())
         print(dic2a)
 
-        dic1b = crystal_fh(dic2a,8040.0)
         dic2b = crystal_fh2(dic2a,8040.0)
 
 
+        # new
+        dic1a = dic2a
+        dic1b = crystal_fh(dic1a, 8040.0)
+
+
+        print(">>> NEW  -  XIAOJIANG")
         for key in dic1b.keys():
             if key != "info":
                 print(">>>", key,dic1b[key],dic2b[key])
