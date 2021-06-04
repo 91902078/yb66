@@ -7,7 +7,7 @@ On going working for upgrading XOPPY/CRYSTAL and SHADOW with any crystal, in par
 XOPPY
 -----
 
-XOPPY/CRYSTAL and also XOPPY/FH read a preprocessor file xbrystal.bra
+XOPPY/CRYSTAL and also XOPPY/FH read a preprocessor file xcrystal.bra
 
 This file is prepared with 
 
@@ -40,8 +40,9 @@ crystal_fh2 should merge in crystal_fh
 SHADOW
 ------
 
-with the python tools in XOPPY we should create the preprocessor file for shadow.
-However, a new independent code must be prepared, as ShadowOui does not have XOPPY as dependence.
+with the python tools in XOPPY we should create the preprocessor file for shadow. This new preprocessor file requires also important changes in the SHADOW fortran kernel.
+
+A new independent python code must be prepared to create the new preprocessor file (ShadowOui does not have XOPPY as dependence) and integrate it in the "bragg" preprocessor.
 
 
 The SHADOW kernel will accept this new preprocessor file. Eventually, the fortran kernel would accept:
@@ -49,4 +50,4 @@ The SHADOW kernel will accept this new preprocessor file. Eventually, the fortra
 - The XOPPY/CRYSTAL preprocessor file xcrystal.bra
 - The new preprocessor
 
-Then, the bragg preprocessor should accept yb66. For that, a "quick-and dirty" way is to add it in the crystal list, ans process it with the new routines. A similar "patch" is already in use for Graphite. It is not clean but it will bame the job until a complete restructuration of the SHADOW crystal code in shadow4.
+Then, we will add yb66 in the list of crystals of the bragg preprocessor. For that, a "quick-and dirty" way is to add it in the crystal list, and process it with the new python routines.  It is not very clean but it will make the job until a complete restructuration of the SHADOW crystal code in shadow4. A similar "patch" is already in use for Graphite.
