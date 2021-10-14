@@ -1,15 +1,9 @@
-import sys
-import os
 import numpy
-
-from orangecontrib.xoppy.util.xoppy_util import locations, XoppyPhysics
-from crystal_util import bragg_calc2, crystal_fh2
-from dabax_util import Crystal_GetCrystalsList
-from run_diff_pat import run_diff_pat
-
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
-import platform
-
+from crystal_util import bragg_calc2, crystal_fh2
+from run_diff_pat import run_diff_pat
+from srxraylib.plot.gol import plot
+import os
 
 if __name__ == "__main__":
     descriptor = 'Muscovite'
@@ -17,7 +11,10 @@ if __name__ == "__main__":
     #
     # old code
     #
+
+    os.system("rm -f xcrystal.bra xoppy.inp")
     dic1a = bragg_calc(descriptor=descriptor,hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
+
     print("KEYS: ",dic1a.keys())
     print(dic1a)
     os.system("cp xcrystal.bra xcrystal.bra.old")
@@ -94,8 +91,11 @@ if __name__ == "__main__":
     # comparison
     #
 
-    from srxraylib.plot.gol import plot
     plot(a1[:, 0], a1[:, -1],
-         a2[:, 0], a2[:, -1],title="Crystal: " + descriptor,
-	 marker=[None,"o"],
-         legend=["OLD code","NEW code"])
+         a2[:, 0], a2[:, -1],
+         linestyle=[None,''],
+         marker=[None,"+"],
+         legend=["XOPPY bragg_calc2 code","NEW bragg_calc2 code"])
+
+
+

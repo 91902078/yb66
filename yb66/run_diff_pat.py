@@ -35,7 +35,7 @@ def run_diff_pat(
     FILECOMPLIANCE = "mycompliance.dat",
     ):
 
-    for file in ["diff_pat.dat", "diff_pat.gle", "diff_pat.par", "diff_pat.xop"]: #, "xcrystal.bra"]:
+    for file in ["xoppy.inp", "diff_pat.dat", "diff_pat.gle", "diff_pat.par", "diff_pat.xop"]: #, "xcrystal.bra"]:
         try:
             os.remove(os.path.join(locations.home_bin_run(), file))
         except:
@@ -47,23 +47,7 @@ def run_diff_pat(
                 "xoppy_calc_xcrystal: WARNING: In xcrystal the asymmetry angle is the angle between Bragg planes and crystal surface," +
                 "in BOTH Bragg and Laue geometries.")
 
-    # descriptor = Crystal_GetCrystalsList()[CRYSTAL_MATERIAL]
-
-    # if SCAN == 3:  # energy scan
-    #     emin = SCANFROM - 1
-    #     emax = SCANTO + 1
-    # else:
-    #     emin = ENERGY - 100.0
-    #     emax = ENERGY + 100.0
-
-    # print("Using crystal descriptor: ", descriptor)
-    #
-    # bragg_dictionary = bragg_calc(descriptor=descriptor,
-    #                               hh=MILLER_INDEX_H, kk=MILLER_INDEX_K, ll=MILLER_INDEX_L,
-    #                               temper=float(TEMPER),
-    #                               emin=emin, emax=emax, estep=5.0, fileout="xcrystal.bra")
-
-    with open("xoppy.inp", "wt") as f:
+    with open("./xoppy.inp", "wt") as f:
         f.write("xcrystal.bra\n")
         f.write("%d\n" % MOSAIC)
         f.write("%d\n" % GEOMETRY)
@@ -93,38 +77,11 @@ def run_diff_pat(
             f.write("%g\n" % RMER)
             f.write("0\n")
 
-            # if ((descriptor == "Si") or (descriptor == "Si2") or (descriptor == "Si_NIST") or (
-            #         descriptor == "Ge") or descriptor == "Diamond"):
-            #     pass
-            # else:  # not Si,Ge,Diamond
-            #     if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
-            #         raise Exception(
-            #             "Anisotropy data not available for this crystal. Either use isotropic or use external compliance file. Please change and run again'")
-
             f.write("%d\n" % ANISOTROPY)
 
             if ANISOTROPY == 0:
                 f.write("%g\n" % POISSON)
-            # elif ANISOTROPY == 1:
-            #     f.write("%d\n" % CRYSTAL_MATERIAL)
-            #     f.write("%g\n" % ASYMMETRY_ANGLE)
-            #     f.write("%d\n" % MILLER_INDEX_H)
-            #     f.write("%d\n" % MILLER_INDEX_K)
-            #     f.write("%d\n" % MILLER_INDEX_L)
-            # elif ANISOTROPY == 2:
-            #     f.write("%d\n" % CRYSTAL_MATERIAL)
-            #     f.write("%g\n" % ASYMMETRY_ANGLE)
-            #     # TODO: check syntax for CUT: Cut syntax is: valong_X valong_Y valong_Z ; vnorm_X vnorm_Y vnorm_Z ; vperp_x vperp_Y vperp_Z
-            #     f.write("%s\n" % CUT.split(";")[0])
-            #     f.write("%s\n" % CUT.split(";")[1])
-            #     f.write("%s\n" % CUT.split(";")[2])
-            # elif ANISOTROPY == 3:
-            #     f.write("%s\n" % FILECOMPLIANCE)
 
-    # if platform.system() == "Windows":
-    #     command = "\"" + os.path.join(locations.home_bin(), 'diff_pat.exe\" < xoppy.inp')
-    # else:
-    #     command = "'" + os.path.join(locations.home_bin(), 'diff_pat') + "' < xoppy.inp"
 
     if platform.system() == "Windows":
         command = "diff_pat.exe < xoppy.inp"

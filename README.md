@@ -23,11 +23,11 @@ The file (or dictionary) created by bragg_calc() is used:
 
 bragg_calc() and crystal_fh() have already been updated to run correctly crystals like Muscovite, that have sites with the same type of atom but different occupancies. 
 
-The local version of these routines are in crystal_util_debug_xoppy.py
+The local version of these routines are in a local copy of xoppy_xraylib_util.py
 
 On-going work is being doing to upgrade these routines for yb66, but need to access new crystal constants from dabax files. 
 
-They are in crystal_util.py than contains bragg_calc2() and crystal_fh2()
+They are in xoppy_dabax_util.py than contains bragg_calc2() and crystal_fh2()
 
 The final goal is to merge the "*2()" routines into the original ones.
 
@@ -35,7 +35,6 @@ For that, calc_bragg2() should make the job using dabax and be compatible with b
 Eventually, calc_bragg should be an interface to calc_bragg_xraylib and calc_bragg_dabax
 
 crystal_fh2 should merge in crystal_fh
-
 
 SHADOW
 ------
