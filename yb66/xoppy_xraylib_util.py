@@ -1326,7 +1326,7 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
 
     txt = ""
     txt += "# Bragg version, Data file type\n"
-    txt += "2.4 1\n"
+    txt += "2.5 1\n"
 
     cryst = xraylib.Crystal_GetCrystal(descriptor)
     volume = cryst['volume']
@@ -1375,7 +1375,12 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
     for i in range(number_of_atoms):
         IDs.append("Z:%2d-F:%g-C:%g" % (list_Zatom[i],list_fraction[i], list_charge[i]))
 
-    unique_indexes = [IDs.index(x) for x in set(IDs)]
+    # calculate indices of uniqte Id's sorted by Z
+    unique_indexes1 = numpy.unique(IDs, return_index=True) [1]
+    unique_Zatom1 = [list_Zatom[i] for i in unique_indexes1]
+    # sort by Z
+    ii = numpy.argsort(unique_Zatom1)
+    unique_indexes = unique_indexes1[ii]
 
     unique_Zatom = [list_Zatom[i] for i in unique_indexes]
     unique_charge = [list_charge[i] for i in unique_indexes]
@@ -1384,6 +1389,7 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
         unique_scattering_electrons.append(Zi - unique_charge[i])
 
     nbatom = (len(unique_Zatom))
+
     txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
     output_dictionary["nbatom"] = nbatom
 

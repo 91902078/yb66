@@ -33,6 +33,65 @@ toangstroms = codata.h * codata.c / codata.e * 1e10
 # crystal tools
 #################################################################################
 
+def __get_f0coeff(atom, list_charge, list_AtomicName,
+                  method=0, # 0=dabax, 1=combined(Dabax for charge!=0, xraylib for charge=0)
+                    ):
+    # new
+    f0coeffs = {}
+    if method == 0:
+        for i, s in enumerate(list_AtomicName):
+            if s not in f0coeffs:
+                f0coeffs[s] = f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
+                                                        dabax_repository=dabax_repository)
+
+    else:
+        total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
+
+        if total_charge_flag != 0: # Use dabax
+            for i, s in enumerate(list_AtomicName):
+                if s not in f0coeffs:
+                    f0coeffs[s] = f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
+                                                            dabax_repository=dabax_repository)
+        else: # use xraylib
+            for x in list_AtomicName:
+                f0coeffs[x] = f0_xop(xraylib.SymbolToAtomicNumber(x))
+
+    # old
+    # f0coeffs = {}
+    # total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
+    # if total_charge_flag != 0:
+    #     for i in range(len(atom)):
+    #         # s = __symbol_to_from_atomic_number(atom[i]['Zatom'])
+    #         # if atom[i]['charge'] != 0.0:  # if charge is 0, s is symbol only, not B0, etc
+    #         #     s = s + f'%+.6g' % atom[i]['charge']
+    #         # list_AtomicName.append(s)
+    #         # change to new f0 function
+    #         s = list_AtomicName[i]
+    #         if s not in f0coeffs:
+    #             f0coeffs[s] = f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
+    #                                                     dabax_repository=dabax_repository)
+    # elif 'AtomicName' in atom[0]:
+    #     # assume at least one atom in the crystal unit
+    #     # first notation, f0 is tabulated, no need to calculate with f0_with_fractional_charge
+    #     # list_AtomicName = [atom[i]['AtomicName'] for i in range(len(atom))]
+    #     unique_AtomicName = list(sorted(set(list_AtomicName)))
+    #     for x in unique_AtomicName:
+    #         tmp = re.search('(^[a-zA-Z]*)', x)
+    #         if tmp.group(0) == x:
+    #             f0coeffs[x] = f0_with_fractional_charge(__symbol_to_from_atomic_number(x), 0)
+    #         else:
+    #             f0coeffs[x] = f0_xop(0, AtomicName=x)
+    #
+    # else:  # usually normal 5 column, solve fractional problem for Muscovite
+    #     # for i in range(len(atom)):
+    #     #     list_AtomicName.append(__symbol_to_from_atomic_number(atom[i]['Zatom']))
+    #     # unique_AtomicName = list(sorted(set(list_AtomicName)))
+    #     for x in unique_Zatom:
+    #         f0coeffs[__symbol_to_from_atomic_number(x)] = f0_xop(x)
+
+    return f0coeffs
+
+
 def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, emax=15000.0, estep=100.0, ANISO_SEL=0,
                 fileout=None):
     """
@@ -49,6 +108,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     :param fileout: name for the output file (default=None, no output file)
     :return: a dictionary with all ingredients of the structure factor.
     """
+
     output_dictionary = {}
 
     codata_e2_mc2 = codata.e ** 2 / codata.m_e / codata.c ** 2 / (4 * numpy.pi * codata.epsilon_0)  # in m
@@ -57,9 +117,8 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
 
     txt = ""
     txt += "# Bragg version, Data file type\n"
-    txt += "2.5 1\n"
+    txt += "2.6 1\n"
 
-    # cryst = xraylib.Crystal_GetCrystal(descriptor)
     cryst = crystal_parser(entry_name=descriptor, dabax_repository=dabax_repository)
     volume = cryst['volume']
 
@@ -77,12 +136,10 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
             print("    %3i %f %f %f %f" % (atom['Zatom'], atom['fraction'], atom['x'], atom['y'], atom['z']))
         print("  ")
 
-    # dspacing = xraylib.Crystal_dSpacing(cryst, hh, kk, ll)
-    dspacing = bragg_metrictensor(cryst['a'], cryst['b'], cryst['c'], cryst['alpha'], cryst['beta'], cryst['gamma'],
-                                  HKL=[hh, kk, ll])
-    dspacing *= 1e-8  # in cm
     volume = volume * 1e-8 * 1e-8 * 1e-8  # in cm^3
+    dspacing = bragg_metrictensor(cryst['a'], cryst['b'], cryst['c'], cryst['alpha'], cryst['beta'], cryst['gamma'], HKL=[hh, kk, ll])
     rn = (1e0 / volume) * (codata_e2_mc2 * 1e2)
+    dspacing *= 1e-8  # in cm
 
     txt += "# RN = (e^2/(m c^2))/V) [cm^-2], d spacing [cm]\n"
     txt += "%e %e \n" % (rn, dspacing)
@@ -92,89 +149,75 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
 
     atom = cryst['atom']
     list_Zatom = [atom[i]['Zatom'] for i in range(len(atom))]
+    number_of_atoms = len(list_Zatom) #### ADDED
     list_fraction = [atom[i]['fraction'] for i in range(len(atom))]
-    list_charge = [atom[i]['charge'] for i in range(len(atom))]
+    try: ##### ADDED
+        list_charge = [atom[i]['charge'] for i in range(len(atom))]
+    except:
+        list_charge = [0.0] * number_of_atoms
     list_x = [atom[i]['x'] for i in range(len(atom))]
     list_y = [atom[i]['y'] for i in range(len(atom))]
     list_z = [atom[i]['z'] for i in range(len(atom))]
 
-    unique_Zatom = set(list_Zatom)
+    # unique_Zatom = set(list_Zatom)
 
-    ############
-    ############
-    ############
-    ##  ------------ XJ.YU  Singapore Synchrotorn Light Source --------------------------
-    ##  For backward compatible
 
-    # TODO: This part must be made compatible with old code (the if block should be removed)
 
-    # this is not longer working... changed to a new flag
-    # if len(atom[0]) >= 6:  #6 column + 1 AtomicName or +1 SeqNo (xraylib)
-    # total_charge = 0
-    # for i in range(len(atom)):
-    #     total_charge += numpy.abs(atom[i]['charge'])
-    total_charge = numpy.abs(numpy.array(list_charge)).sum()
-
-    f0coeffs = {}
     list_AtomicName = []
-    if total_charge != 0:
-        for i in range(len(atom)):
-            # tmp = atom[i]['AtomicName']
-            # s = symbol_to_from_atomic_number(int(cell_data[0,i]))
-            # if cell_data[5, i] != 0:  #charged
-            #     s = s + f'%+.6g'%cell_data[5, i]
-            s = __symbol_to_from_atomic_number(atom[i]['Zatom'])
-            if atom[i]['charge'] != 0.0:  # if charge is 0, s is symbol only, not B0, etc
-                s = s + f'%+.6g' % atom[i]['charge']
-            list_AtomicName.append(s)
-            # change to new f0 function
-            if s not in f0coeffs:
-                f0coeffs[s] = f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                        dabax_repository=dabax_repository)
-        # TODO: check this, it fails. May be because it does not know list_AtomicName ?
-        # already replaced with new f0 function above, f0_with_fractional_charge
-        # f0coeffs = __get_f0_coeffs(atom, list_Zatom)
+    for i in range(len(atom)):
+        s = __symbol_to_from_atomic_number(atom[i]['Zatom'])
+        if atom[i]['charge'] != 0.0:  # if charge is 0, s is symbol only, not B0, etc
+            s = s + f'%+.6g' % atom[i]['charge']
+        list_AtomicName.append(s)
 
-        unique_AtomicName = list(sorted(set(list_AtomicName)))
-    elif 'AtomicName' in atom[0]:
-        # assume at least one atom in the crystal unit
-        # first notation, f0 is tabulated, no need to calculate with f0_with_fractional_charge
-        list_AtomicName = [atom[i]['AtomicName'] for i in range(len(atom))]
-        unique_AtomicName = list(sorted(set(list_AtomicName)))
-        for x in unique_AtomicName:
-            tmp = re.search('(^[a-zA-Z]*)', x)
-            if tmp.group(0) == x:
-                f0coeffs[x] = f0_with_fractional_charge(__symbol_to_from_atomic_number(x), 0)
-            else:
-                f0coeffs[x] = f0_xop(0, AtomicName=x)
 
-    else:  # usually normal 5 column, solve fractional problem for Muscovite
-        for i in range(len(atom)):
-            list_AtomicName.append(__symbol_to_from_atomic_number(atom[i]['Zatom']))
-        unique_AtomicName = list(sorted(set(list_AtomicName)))
-        for x in unique_Zatom:
-            f0coeffs[__symbol_to_from_atomic_number(x)] = f0_xop(x)
+    f0coeffs = __get_f0coeff(atom, list_charge, list_AtomicName)
 
     # unique_AtomicName has at least one empty string
-    if unique_AtomicName[0] != '':
-        # now unique_Zatom is changed from set to list, allow duplicate atomic number
-        # because same atom at different sites may have different valences, i.e., O2-,O1.5-
+    if True:
+        # calculate indices of uniqte unique_AtomicName's sorted by Z
+        unique_indexes1 = numpy.unique(list_AtomicName, return_index=True)[1]
+        unique_Zatom1 = [list_Zatom[i] for i in unique_indexes1]
+        # sort by Z
+        ii = numpy.argsort(unique_Zatom1)
+        unique_indexes = unique_indexes1[ii]
+
+        unique_AtomicName = [list_AtomicName[i] for i in unique_indexes]
+
         unique_Zatom = []
         for z in unique_AtomicName:
             tmp = re.search('(^[a-zA-Z]*)', z)
             unique_Zatom.append(__symbol_to_from_atomic_number(tmp.group(0)))
-    ##  ------------ Singapore Synchrotorn Light Source ---------------------------------
-    TmpCrystal = ()  # for diff_pat.exe
-    # TODO: this has to be modified to make it working for old and new code
-    # unique_AtomicName already set for all cases, no problem
-    if unique_AtomicName[0] != '':  # Complex crystal
+
+    else:
+        unique_AtomicName = list(sorted(set(list_AtomicName)))
+        if unique_AtomicName[0] != '':
+            # now unique_Zatom is changed from set to list, allow duplicate atomic number
+            # because same atom at different sites may have different valences, i.e., O2-,O1.5-
+            unique_Zatom = []
+            for z in unique_AtomicName:
+                tmp = re.search('(^[a-zA-Z]*)', z)
+                unique_Zatom.append(__symbol_to_from_atomic_number(tmp.group(0)))
+
+
+
+    if True:
+        # new
         TmpCrystal = __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom, list_fraction, f0coeffs)
-    ############
-    ############
-    ############
+    else:
+        #  ------------ Singapore Synchrotorn Light Source ---------------------------------
+        TmpCrystal = ()  # for diff_pat.exe
+        # TODO: this has to be modified to make it working for old and new code
+        # unique_AtomicName already set for all cases, no problem
+        if unique_AtomicName[0] != '':  # Complex crystal
+            TmpCrystal = __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom, list_fraction, f0coeffs)
+        ############
+        ############
+        ############
 
     nbatom = (len(unique_Zatom))
     nbatom_new = len(TmpCrystal[0])
+
     if unique_AtomicName[0] == '':
         txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
     else:
@@ -183,30 +226,42 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
 
     # txt += "# for each element-site, the atomic number\n"
     txt += "# for each element-site, the number of scattering electrons (Z_i - charge_i)\n"
-    if unique_AtomicName[0] != '':  # Complex crystal
+    if True:
         for i in TmpCrystal[0]:
             # i = int(i + 0.5)        #round to integer value, diff_pat.exe not support float ATNUM
             # txt += "%d "%i
             txt += "%f " % i
-    else:  # normal crystals
-        for i in unique_Zatom:
-            txt += "%d " % i
+    else:
+        if unique_AtomicName[0] != '':  # Complex crystal
+            for i in TmpCrystal[0]:
+                # i = int(i + 0.5)        #round to integer value, diff_pat.exe not support float ATNUM
+                # txt += "%d "%i
+                txt += "%f " % i
+        else:  # normal crystals
+            for i in unique_Zatom:
+                txt += "%d " % i
+
+
     txt += "\n"
 
-    method = 1  # 0=srio:
-    # 1=Xiaojiang F_0
-    if method == 0:  # srio
-        if unique_AtomicName[0] != '':
-            output_dictionary["atnum"] = list(TmpCrystal[0])
-        else:
-            output_dictionary["atnum"] = TmpCrystal[3]
-
+    if True:
+        output_dictionary["atnum"] = list(TmpCrystal[0])
     else:
-        if len(TmpCrystal) > 0:
-            output_dictionary["atnum"] = list(TmpCrystal[0])
+        method = 1  # 0=srio # 1=Xiaojiang F_0
+        if method == 0:  # srio
+            if unique_AtomicName[0] != '':
+                output_dictionary["atnum"] = list(TmpCrystal[0])
+            else:
+                output_dictionary["atnum"] = TmpCrystal[3]
+
         else:
-            output_dictionary["atnum"] = list(unique_Zatom)
-    # XJ.YU  Singapore Synchrotorn Light Source
+            if len(TmpCrystal) > 0:
+                output_dictionary["atnum"] = list(TmpCrystal[0])
+            else:
+                output_dictionary["atnum"] = list(unique_Zatom)
+        # XJ.YU  Singapore Synchrotorn Light Source
+
+
     output_dictionary["zcol"] = list(list_Zatom)
     output_dictionary["unique_AtomicName"] = list(unique_AtomicName)
     output_dictionary["list_AtomicName"] = list(list_AtomicName)
@@ -948,17 +1003,17 @@ if __name__ == "__main__":
     from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc as bragg_calc_old
     from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh as crystal_fh_old
 
-    # teste temperature
-    check_temperature_factor()
+    # test temperature
+    # check_temperature_factor()
 
     # test Si
-    # check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000)
+    check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000)
 
     # test Muscovite
-    # check_structure_factor(descriptor="Muscovite", hh=1, kk=1, ll=1, energy=8000, do_assert=0, models=[0,1,1])
+    check_structure_factor(descriptor="Muscovite", hh=1, kk=1, ll=1, energy=8000, do_assert=0, models=[0,1,1])
 
     # Test YB66
-    # check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1])
+    check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1])
 
     #
     # f0
