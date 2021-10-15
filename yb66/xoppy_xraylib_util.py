@@ -1393,7 +1393,7 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
     txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
     output_dictionary["nbatom"] = nbatom
 
-    txt += "# for each element-site, the number of scattering electrons (Z_i - charge_i)\n"
+    txt += "# for each element-site, the number of scattering electrons (Z_i + charge_i)\n"
     for i in unique_Zatom:
         txt += "%d "%i
     txt += "\n"
