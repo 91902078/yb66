@@ -104,7 +104,6 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     # unique_Zatom = set(list_Zatom)
 
 
-
     list_AtomicName = []
     for i in range(len(atom)):
         s = __symbol_to_from_atomic_number(atom[i]['Zatom'])
@@ -114,40 +113,62 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
 
 
     # f0coeffs = __get_f0coeff(atom, list_charge, list_AtomicName)
+        #
+        # the each 'unique name' site can have different fraction. Calculate now the indices
+        # of the sites including fraction.
+        #
+    # calculate indices of uniqte unique_AtomicName's sorted by Z
+    unique_indexes1 = numpy.unique(list_AtomicName, return_index=True)[1]
+    unique_Zatom1 = [list_Zatom[i] for i in unique_indexes1]
+    # sort by Z
+    ii = numpy.argsort(unique_Zatom1)
+    unique_indexes = unique_indexes1[ii]
+
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> unique_indexes", unique_indexes)
 
 
+    unique_indexes_with_fraction = []
+    for k in unique_indexes:
+        unique_indexes_with_fraction.append(k)
+
+        itmp = [k]
+        ifraction = [list_fraction[k]]
+
+        for i in range(len(list_AtomicName)):
+            if list_AtomicName[i] == list_AtomicName[k]:
+                if list_fraction[i] in ifraction:
+                    pass
+                else:
+                    itmp.append([i])
+                    ifraction.append(list_fraction[i])
+                    unique_indexes_with_fraction.append(i)
+
+        output_dictionary["unique_indexes_with_fraction"] = unique_indexes_with_fraction  # different with diff_pat for complex crystal
+
+    # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> unique_indexes_with_fraction", unique_indexes_with_fraction)
     # new
-    f0coeffs = {}
-    method=0 # 0=dabax, 1=combined(Dabax for charge!=0, xraylib for charge=0)
-    if method == 0:
-        for i, s in enumerate(list_AtomicName):
-            if s not in f0coeffs:
-                f0coeffs[s] = f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                        dabax_repository=dabax_repository)
 
+    method=1 # 0=dabax, 1=combined(Dabax for charge!=0, xraylib for charge=0)
+    if method == 0:
+        f0coeffs = []
+        for i in unique_indexes_with_fraction:
+                f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
+                                                        dabax_repository=dabax_repository) )
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|||||||||||",len(f0coeffs))
     else:
+        f0coeffs = []
         total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
 
         if total_charge_flag != 0: # Use dabax
-            for i, s in enumerate(list_AtomicName):
-                if s not in f0coeffs:
-                    f0coeffs[s] = f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                            dabax_repository=dabax_repository)
+            for i in unique_indexes_with_fraction:
+                f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
+                                                          dabax_repository=dabax_repository))
         else: # use xraylib
-            for x in list_AtomicName:
-                f0coeffs[x] = f0_xop(xraylib.SymbolToAtomicNumber(x))
+            for i in unique_indexes_with_fraction:
+                f0coeffs.append(f0_xop(atom[i]['Zatom']))
 
 
-
-    # unique_AtomicName has at least one empty string
     if True:
-        # calculate indices of uniqte unique_AtomicName's sorted by Z
-        unique_indexes1 = numpy.unique(list_AtomicName, return_index=True)[1]
-        unique_Zatom1 = [list_Zatom[i] for i in unique_indexes1]
-        # sort by Z
-        ii = numpy.argsort(unique_Zatom1)
-        unique_indexes = unique_indexes1[ii]
-
         unique_AtomicName = [list_AtomicName[i] for i in unique_indexes]
 
         unique_Zatom = []
@@ -166,31 +187,10 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                 unique_Zatom.append(__symbol_to_from_atomic_number(tmp.group(0)))
 
     if True:
+        pass
         # new
-
-        #
-        # the each 'unique name' site can have different fraction. Calculate now the indices
-        # of the sites including fraction.
-        #
-
-        unique_indexes_with_fraction = []
-        for k in unique_indexes:
-            unique_indexes_with_fraction.append(k)
-
-            itmp = [k]
-            ifraction = [list_fraction[k]]
-
-            for i in range(len(list_AtomicName)):
-                if list_AtomicName[i] == list_AtomicName[k]:
-                    if list_fraction[i] in ifraction:
-                        pass
-                    else:
-                        itmp.append([i])
-                        ifraction.append(list_fraction[i])
-                        unique_indexes_with_fraction.append(i)
-
         #TODO delete
-        TmpCrystal = __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom, list_fraction, f0coeffs)
+        # TmpCrystal = __crystal_atnum(list_AtomicName, unique_AtomicName, unique_Zatom, list_fraction, f0coeffs)
     else:
         #  ------------ Singapore Synchrotorn Light Source ---------------------------------
         TmpCrystal = ()  # for diff_pat.exe
@@ -206,7 +206,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         nbatom = (len(unique_Zatom))
         nbatom_new = (len(unique_indexes_with_fraction))
         txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom_new
-        output_dictionary["nbatom"] = nbatom  # different with diff_pat for complex crystal
+        output_dictionary["nbatom"] = nbatom_new  # different with diff_pat for complex crystal
     else:
         nbatom = (len(unique_Zatom))
         nbatom_new = len(TmpCrystal[0])
@@ -257,9 +257,8 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
 
 
     output_dictionary["zcol"] = list(list_Zatom)
-    output_dictionary["unique_AtomicName"] = list(unique_AtomicName)
+    # output_dictionary["unique_AtomicName"] = list(unique_AtomicName)
     output_dictionary["list_AtomicName"] = list(list_AtomicName)
-
 
 
     txt += "# for each element-site, the occupation factor\n"
@@ -294,7 +293,8 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     # because even for same kind atom in different sites could have different occupancy,Like YB66, B1,B2,etc
     # so keep the original fraction list
     #
-    output_dictionary["fraction"] = list_fraction  # not unique_fraction, full list
+    # output_dictionary["fraction"] = list_fraction  # not unique_fraction, full list
+    output_dictionary["fraction"] = unique_fraction  # not unique_fraction, full list
 
 
     txt += "# for each element-site, the temperature factor\n"  # temperature parameter
@@ -380,7 +380,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
 
 
 
-    if False:
+    if True:
         # creates an is that contains Z, occupation and charge, that will
         # define the different sites.
 
@@ -392,6 +392,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
             ff = list_fraction[i]
             for j in range(number_of_atoms):
                 if list_AtomicName[j] == zz and list_fraction[j] == ff:
+                    # print("????????????????????????????????????????????????????????????????? ADDING : ", zz, list_AtomicName[j], i,j,numpy.exp(2j * numpy.pi * (hh * list_x[j] + kk * list_y[j] + ll * list_z[j])))
                     ga_item = numpy.exp(2j * numpy.pi * (hh * list_x[j] + kk * list_y[j] + ll * list_z[j]))
                     ga += ga_item
             txt += "(%g,%g) \n" % (ga.real, ga.imag)
@@ -434,6 +435,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         list_g_bar = []
         if unique_AtomicName[0] == '':  # normal crystal
             for z in unique_Zatom:
+                # print("????????????????????????????????????????????????????????????????? ADDING : ", z)
                 ga = numpy.sum(numpy.where(numpy.array(list_Zatom) == z, ss, 0))
                 txt += "(%g,%g) \n" % (ga.real, ga.imag)
                 txt += "(%g,%g) \n" % (ga.real, -ga.imag)
@@ -441,6 +443,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                 list_g_bar.append(ga.conjugate())
         else:  # complex crystal
             for z in unique_AtomicName:
+                # print("????????????????????????????????????????????????????????????????? ADDING : ", z)
                 ga = numpy.sum(numpy.where(numpy.array(list_AtomicName) == z, ss, 0))
                 list_g.append(ga)
                 list_g_bar.append(ga.conjugate())
@@ -459,38 +462,51 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     # F0 part
     #
     txt += "# for each type of element-site, the number of f0 coefficients followed by them\n"
-    list_f0 = []
-    tmp_g = {}  # add for diff_pat.exe, multiple different sites with same atom
-    for i, zeta in enumerate(unique_Zatom):
-        # Comment: X.J. Yu, slsyxj@nus.edu.sg
-        # For complicate compound crystal, we use unique_AtomicName instead of atomic number to get f0
-        #
-        if unique_AtomicName[0] != '':  # with compound crystal name input
-            tmp1 = re.search('(^[a-zA-Z]*)', unique_AtomicName[i])
-            if tmp1.group(0) == unique_AtomicName[i]:
-                # Atom name only, without suffix for valence info (i.e., B, Y, O)
+    if True:
+        for f0coeffs_item in f0coeffs:
+            txt += "%d " % len(f0coeffs_item)
+            for cc in f0coeffs_item:
+                txt += "%g " % cc
+            txt += "\n"
+
+        output_dictionary["f0coeff"] = f0coeffs
+
+    else:
+        list_f0 = []
+        tmp_g = {}  # add for diff_pat.exe, multiple different sites with same atom
+        for i, zeta in enumerate(unique_Zatom):
+            # Comment: X.J. Yu, slsyxj@nus.edu.sg
+            # For complicate compound crystal, we use unique_AtomicName instead of atomic number to get f0
+            #
+            if unique_AtomicName[0] != '':  # with compound crystal name input
+                tmp1 = re.search('(^[a-zA-Z]*)', unique_AtomicName[i])
+                if tmp1.group(0) == unique_AtomicName[i]:
+                    # Atom name only, without suffix for valence info (i.e., B, Y, O)
+                    tmp = f0_xop(zeta)
+                elif unique_AtomicName[i] in f0coeffs:  # second notation, 'B-0.045548', etc
+                    tmp = f0coeffs[unique_AtomicName[i]]
+                else:  # first notation 'B-.', etc
+                    tmp = f0_xop(0, unique_AtomicName[i])
+            else:  # original notation only
                 tmp = f0_xop(zeta)
-            elif unique_AtomicName[i] in f0coeffs:  # second notation, 'B-0.045548', etc
-                tmp = f0coeffs[unique_AtomicName[i]]
-            else:  # first notation 'B-.', etc
-                tmp = f0_xop(0, unique_AtomicName[i])
-        else:  # original notation only
-            tmp = f0_xop(zeta)
-        # print(("%g "*11)%(tmp.tolist()))
-        nn = len(tmp)
-        if len(TmpCrystal) == 0:  # normal crystal
-            txt += (str(nn) + " " + "%g " * nn + "\n") % (tuple(tmp))
-        else:  # temporaty save here
-            tmp_g[str(zeta)] = tuple(tmp)
-        # By XJ.Yu, return value already changed from array to list
-        # list_f0.append(tmp.tolist())
-        list_f0.append(tmp)
-    if len(TmpCrystal) > 0:  # for diff_pat.exe
-        for zeta in TmpCrystal[3]:  # receive the f0 for atom at each site
-            nn = len(tmp_g[str(zeta)])
-            # txt += ("11 "+"%g "*11+"\n")%(tmp_g[str(zeta)])        #not work for 9 column f0
-            txt += (str(nn) + " " + "%g " * nn + "\n") % (tmp_g[str(zeta)])
-    output_dictionary["f0coeff"] = list_f0
+            # print(("%g "*11)%(tmp.tolist()))
+            nn = len(tmp)
+            if len(TmpCrystal) == 0:  # normal crystal
+                txt += (str(nn) + " " + "%g " * nn + "\n") % (tuple(tmp))
+            else:  # temporaty save here
+                tmp_g[str(zeta)] = tuple(tmp)
+            # By XJ.Yu, return value already changed from array to list
+            # list_f0.append(tmp.tolist())
+            list_f0.append(tmp)
+        if len(TmpCrystal) > 0:  # for diff_pat.exe
+            for zeta in TmpCrystal[3]:  # receive the f0 for atom at each site
+                nn = len(tmp_g[str(zeta)])
+                # txt += ("11 "+"%g "*11+"\n")%(tmp_g[str(zeta)])        #not work for 9 column f0
+                txt += (str(nn) + " " + "%g " * nn + "\n") % (tmp_g[str(zeta)])
+
+        output_dictionary["f0coeff"] = list_f0
+
+
 
     # f.write("# -----------------------------------------------\n")
 
@@ -504,26 +520,44 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     txt += "# for each energy point, energy, F1(1),F2(1),...,F1(nbatom),F2(nbatom)\n"
     list_energy = []
     print(">>>> npoint: ", npoint)
-    out_f1 = numpy.zeros((len(unique_Zatom), npoint), dtype=float)
-    out_f2 = numpy.zeros((len(unique_Zatom), npoint), dtype=float)
-    out_fcompton = numpy.zeros((len(unique_Zatom), npoint), dtype=complex)
+    # out_f1 = numpy.zeros((len(unique_Zatom), npoint), dtype=float)
+    # out_f2 = numpy.zeros((len(unique_Zatom), npoint), dtype=float)
+    # out_fcompton = numpy.zeros((len(unique_Zatom), npoint), dtype=complex)
+
+    out_f1 = numpy.zeros((len(unique_indexes_with_fraction), npoint), dtype=float)
+    out_f2 = numpy.zeros((len(unique_indexes_with_fraction), npoint), dtype=float)
+    out_fcompton = numpy.zeros((len(unique_indexes_with_fraction), npoint), dtype=complex)
+
     for i in range(npoint):
         energy = (emin + estep * i)
         txt += ("%20.11e \n") % (energy)
         list_energy.append(energy)
 
-        if len(TmpCrystal) > 0:  # for diff_pat.exe
-            tmp_g = TmpCrystal[3]
-        else:
-            tmp_g = list(unique_Zatom)
-        for j, zeta in enumerate(unique_Zatom):
-            f1a = xraylib.Fi(int(zeta), energy * 1e-3)
-            f2a = -xraylib.Fii(int(zeta), energy * 1e-3)  # TODO: check the sign!!
-            for x in range(tmp_g.count(zeta)):  # treat different occupation for same atoms with a input line
+        if True:
+            for j,jj in enumerate(unique_indexes_with_fraction):
+                f1a = xraylib.Fi(list_Zatom[jj], energy * 1e-3)
+                f2a = -xraylib.Fii(list_Zatom[jj], energy * 1e-3)  # TODO: check the sign!!
                 txt += (" %20.11e %20.11e 1.000 \n") % (f1a, f2a)
-            out_f1[j, i] = f1a
-            out_f2[j, i] = f2a
-            out_fcompton[j, i] = 1.0
+                out_f1[j, i] = f1a
+                out_f2[j, i] = f2a
+                out_fcompton[j, i] = 1.0
+        else:
+            if len(TmpCrystal) > 0:  # for diff_pat.exe
+                tmp_g = TmpCrystal[3]
+            else:
+                tmp_g = list(unique_Zatom)
+            for j, zeta in enumerate(unique_Zatom):
+                f1a = xraylib.Fi(int(zeta), energy * 1e-3)
+                f2a = -xraylib.Fii(int(zeta), energy * 1e-3)  # TODO: check the sign!!
+                for x in range(tmp_g.count(zeta)):  # treat different occupation for same atoms with a input line
+                    txt += (" %20.11e %20.11e 1.000 \n") % (f1a, f2a)
+                out_f1[j, i] = f1a
+                out_f2[j, i] = f2a
+                out_fcompton[j, i] = 1.0
+
+
+
+
     output_dictionary["energy"] = list_energy
     output_dictionary["f1"] = out_f1
     output_dictionary["f2"] = out_f2
@@ -563,9 +597,10 @@ def crystal_fh2(input_dictionary, phot_in, theta=None, forceratio=0):
     fpp = numpy.array(input_dictionary["f2"])
     # X.J. Yu, slsyxj@nus.edu.sg
     ZCOL = numpy.array(input_dictionary["zcol"])
-    FCOL = numpy.array(input_dictionary["fraction"])
-    UCOL = numpy.array(input_dictionary["unique_AtomicName"])
+    fraction = numpy.array(input_dictionary["fraction"])
+    # UCOL = numpy.array(input_dictionary["unique_AtomicName"])
     LCOL = numpy.array(input_dictionary["list_AtomicName"])
+    unique_indexes_with_fraction = input_dictionary["unique_indexes_with_fraction"]
     # ---------------------------------------------------------
     phot_in = numpy.array(phot_in, dtype=float).reshape(-1)
 
@@ -642,32 +677,46 @@ def crystal_fh2(input_dictionary, phot_in, theta=None, forceratio=0):
         CI = 0.0 + 1.0j
 
         TEMPER_AVE = 1.0
-        # X.J. Yu, slsyxj@nus.edu.sg
-        # Occupancy for FH already included in G in Bragg_Calc function
-        BOOL_UCOL = UCOL[0] == ''
-        for j in range(nbatom):
-            FH += G[j] * F[j] * 1.0
-            FHr += G[j] * (F0[j] + F1[j]) * 1.0
-            FHi += G[j] * F2[j] * 1.0
-            # charged atom, the number of electrons not equal to atum anymore,while
-            # it is euqal to F000, and notably, fractial occupancy need consideration here
-            # occupancy till now, only consider in calculation of G, and G_BAR in bragg_calc
-            # comment out: X.J. Yu, slsyxj@nus.edu.sg
-            #
-            #            F_0 += G_0[j] * ( atnum[j] + F1[j] + 1j * F2[j] ) * 1.0
-            #
-            FN = F000[j] + F1[j] + CI * F2[j]
-            if BOOL_UCOL:  # normal crystal
-                F_0 += FN * numpy.sum(numpy.where(ZCOL == atnum[j], FCOL, 0.0))
-            else:  # complicate compound crystals
-                F_0 += FN * numpy.sum(numpy.where(LCOL == UCOL[j], FCOL, 0.0))
+        if True:
+            TEMPER_AVE = 1.0
+            for j in range(nbatom):
+                FH += fraction[j] * (G[j] * F[j] * 1.0)
+                FHr += fraction[j] * (G[j] * (F0[j] + F1[j]) * 1.0)
+                FHi += fraction[j] * (G[j] * F2[j] * 1.0)
+                F_0 += fraction[j] * (G_0[j] * (atnum[j] + F1[j] + 1j * F2[j]) * 1.0)
+                TEMPER_AVE *= (temper[j]) ** (G_0[j] / (G_0.sum()))
 
-            TEMPER_AVE *= (temper[j]) ** (G_0[j] / (G_0.sum()))
+                FH_BAR += fraction[j] * ((G_BAR[j] * F[j] * 1.0))
+                FH_BARr += fraction[j] * ((G_BAR[j] * (F0[j] + F1[j]) * 1.0))
+                FH_BARi += fraction[j] * ((G_BAR[j] * F2[j] * 1.0))
+                # print("TEMPER_AVE: ",TEMPER_AVE)
+        else:
+            # X.J. Yu, slsyxj@nus.edu.sg
+            # Occupancy for FH already included in G in Bragg_Calc function
+            BOOL_UCOL = UCOL[0] == ''
+            for j in range(nbatom):
+                FH += G[j] * F[j] * 1.0
+                FHr += G[j] * (F0[j] + F1[j]) * 1.0
+                FHi += G[j] * F2[j] * 1.0
+                # charged atom, the number of electrons not equal to atum anymore,while
+                # it is euqal to F000, and notably, fractial occupancy need consideration here
+                # occupancy till now, only consider in calculation of G, and G_BAR in bragg_calc
+                # comment out: X.J. Yu, slsyxj@nus.edu.sg
+                #
+                #            F_0 += G_0[j] * ( atnum[j] + F1[j] + 1j * F2[j] ) * 1.0
+                #
+                FN = F000[j] + F1[j] + CI * F2[j]
+                if BOOL_UCOL:  # normal crystal
+                    F_0 += FN * numpy.sum(numpy.where(ZCOL == atnum[j], FCOL, 0.0))
+                else:  # complicate compound crystals
+                    F_0 += FN * numpy.sum(numpy.where(LCOL == UCOL[j], FCOL, 0.0))
 
-            FH_BAR += (G_BAR[j] * F[j] * 1.0)
-            FH_BARr += (G_BAR[j] * (F0[j] + F1[j]) * 1.0)
-            FH_BARi += (G_BAR[j] * F2[j] * 1.0)
-            # print("TEMPER_AVE: ",TEMPER_AVE)
+                TEMPER_AVE *= (temper[j]) ** (G_0[j] / (G_0.sum()))
+
+                FH_BAR += (G_BAR[j] * F[j] * 1.0)
+                FH_BARr += (G_BAR[j] * (F0[j] + F1[j]) * 1.0)
+                FH_BARi += (G_BAR[j] * F2[j] * 1.0)
+                # print("TEMPER_AVE: ",TEMPER_AVE)
 
         # ;C
         # ;C multiply by the average temperature factor
@@ -1048,11 +1097,12 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
     if models[1]: print("KEYS dict1b: ", dic1b.keys())
     if models[2]: print("KEYS dict2b: ", dic2b.keys())
 
+
     if models[1] and models[2]:
         print(">>> COMPARING RESULT OF bragg_calc NEW  -  XIAOJIANG")
-        for key in dic1b.keys():
+        for key in dic1a.keys():
             if key != "info":
-                print(">>>", key, dic1b[key], dic2b[key])
+                print(">>>", key, "\n   ", dic1a[key], "\n   ", dic2a[key])
 
 
     print("For Si 111 at 8 keV: ")
@@ -1101,7 +1151,7 @@ if __name__ == "__main__":
     check_structure_factor(descriptor="Muscovite", hh=1, kk=1, ll=1, energy=8000, do_assert=1, models=[0,1,1])
 
     # Test YB66
-    # check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1])
+    check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1])
 
     #
     # f0

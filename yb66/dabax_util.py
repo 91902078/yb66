@@ -392,7 +392,7 @@ def __symbol_to_from_atomic_number(ATOM):
         if a[1] == ATOM:
             return int(a[0])
 
-    raise Exception("Why are you here?")
+    raise Exception("Why are you here?", ATOM)
 
 def __f0func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
     return calculate_f0_from_f0coeff([a1, a2, a3, a4, a5, a6, a7, a8, a9], q)
