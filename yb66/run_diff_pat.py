@@ -2,7 +2,7 @@ import os
 import numpy
 
 from orangecontrib.xoppy.util.xoppy_util import locations, XoppyPhysics
-from crystal_util import bragg_calc2
+from xoppy_dabax_util import bragg_calc2
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
 import platform

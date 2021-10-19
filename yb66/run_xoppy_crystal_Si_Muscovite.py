@@ -4,12 +4,11 @@
 import numpy
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc as bragg_calc_old
-from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh as crystal_fh_old
 
 from xoppy_xraylib_util import bragg_calc
-from xoppy_xraylib_util import crystal_fh
 
-from crystal_util import bragg_calc2, crystal_fh2
+from xoppy_dabax_util import bragg_calc2
+
 import os
 
 from run_diff_pat import run_diff_pat
@@ -23,8 +22,6 @@ if __name__ == "__main__":
         #
         dic1a = bragg_calc_old(descriptor=descriptor,hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
         os.system("cp xcrystal.bra xcrystal.bra.old")
-
-        dic1b = crystal_fh_old(dic1a,8000.0)
 
         run_diff_pat(
             MOSAIC=0,
@@ -55,10 +52,6 @@ if __name__ == "__main__":
         dic2a = bragg_calc(descriptor=descriptor,hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra")
         print("KEYS: ",dic2a.keys())
         os.system("cp xcrystal.bra xcrystal.bra.new")
-
-        dic2b = crystal_fh(dic2a,8000.0)
-        print(dic2b["info"])
-        print("KEYS: ",dic2b.keys())
 
         run_diff_pat(
             MOSAIC=0,
@@ -91,11 +84,6 @@ if __name__ == "__main__":
         print("KEYS: ", dic3a.keys())
         os.system("cp xcrystal.bra xcrystal.bra.xj")
 
-
-        dic3b = crystal_fh2(dic3a, 8000.0)
-        print(dic3b["info"])
-        print("KEYS: ", dic3b.keys())
-
         run_diff_pat(
             MOSAIC=0,
             GEOMETRY=0,
@@ -121,9 +109,9 @@ if __name__ == "__main__":
 
 
 
-        for key in dic1b.keys():
+        for key in dic1a.keys():
             if key != "info":
-                print(">>>", key,dic1b[key],dic2b[key],dic3b[key])
+                print(">>>", key,dic1a[key],dic2a[key],dic3a[key])
                 # tmp = numpy.abs(dic1b[key] - dic2b[key])
                 # if tmp.size == 1:
                 #     assert (tmp < 1e-6)
@@ -143,4 +131,4 @@ if __name__ == "__main__":
              a3[:, 0], a3[:, -1],
              title="Crystal: " + descriptor,
              marker=[None, "o", "+"],
-             legend=["OLD code (current xoppy)", "FIXED code (this file)", "XIAOJIANG code"])
+             legend=["current xoppy", "local xoppy_xraylib_util", "bragg_calc2 in xoppy_dabax_util"])

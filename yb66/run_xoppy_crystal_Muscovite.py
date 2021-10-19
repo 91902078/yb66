@@ -1,6 +1,6 @@
 import numpy
-from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
-from crystal_util import bragg_calc2, crystal_fh2
+from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc
+from xoppy_dabax_util import bragg_calc2
 from run_diff_pat import run_diff_pat
 from srxraylib.plot.gol import plot
 import os
@@ -18,10 +18,6 @@ if __name__ == "__main__":
     print("KEYS: ",dic1a.keys())
     print(dic1a)
     os.system("cp xcrystal.bra xcrystal.bra.old")
-
-    dic1b = crystal_fh(dic1a,8000.0)
-    print(dic1b["info"])
-    print("KEYS: ",dic1b.keys())
 
     run_diff_pat(
         MOSAIC = 0,
@@ -54,9 +50,6 @@ if __name__ == "__main__":
     print(dic2a)
     os.system("cp xcrystal.bra xcrystal.bra.new")
 
-    dic2b = crystal_fh2(dic2a,8000.0)
-    print(dic2b["info"])
-    print("KEYS: ",dic2b.keys())
 
     # compare
     try:
@@ -95,7 +88,7 @@ if __name__ == "__main__":
          a2[:, 0], a2[:, -1],
          linestyle=[None,''],
          marker=[None,"+"],
-         legend=["XOPPY bragg_calc2 code","NEW bragg_calc2 code"])
+         legend=["XOPPY bragg_calc code","NEW bragg_calc2 code"])
 
 
 

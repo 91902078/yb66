@@ -13,7 +13,7 @@ if __name__ == "__main__":
     dabax_repository = "/scisoft/DABAX/data"  # "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
     do_plot = 1
 
-    if True:
+    if False:
         #
         # f0
         #
@@ -45,39 +45,21 @@ if __name__ == "__main__":
             print("File f0.png written to disk.")
             plt.show()
 
-    #
-    # f0 another test
-    #
-    if False:
 
-        #
-        # test f0 data for B3+
-        #
-        q = numpy.array(
-            [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6,
-             1.7, 1.8, 1.9])
-        f0_B3plus = numpy.array(
-            [2, 1.995, 1.979, 1.954, 1.919, 1.875, 1.824, 1.766, 1.703, 1.566, 1.42, 1.274, 1.132, 0.999, 0.877, 0.767,
-             0.669, 0.582, 0.507, 0.441, 0.384, 0.335, 0.293, 0.256])
+#
+# table 3
+#
+    if True:
+        from xoppy_dabax_util import check_structure_factor
 
-        #
-        # plot
-        #
-        from srxraylib.plot.gol import plot
-
-        coeff_Bdot = numpy.array([])
-        plot(q, f0_B3plus,
-             q, calculate_f0_from_f0coeff(f0_with_fractional_charge(5, 3.0, dabax_repository=dabax_repository), q),
-             q, calculate_f0_from_f0coeff(f0_with_fractional_charge(5, 2.8, dabax_repository=dabax_repository), q),
-             xtitle=r"q (sin $\theta$ / $\lambda$)", ytitle="f0 [electron units]",
-             legend=["B3plus original",
-                     "B3plus from f0_with_fractional_charge(5,+3)",
-                     "B3plus from f0_with_fractional_charge(5,+2.8)"],
-             title="", show=1)
+        # test Muscovite
+        F200 = check_structure_factor(descriptor="YB66", hh=2, kk=0, ll=0, energy=8040.0, do_assert=0, models=[0,0,1])
+        F400 = check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=0, models=[0,0,1])
+        F600 = check_structure_factor(descriptor="YB66", hh=6, kk=0, ll=0, energy=8040.0, do_assert=0, models=[0,0,1])
+        F800 = check_structure_factor(descriptor="YB66", hh=8, kk=0, ll=0, energy=8040.0, do_assert=0, models=[0,0,1])
 
 
-
-
-
-
-
+        print("F_200: ",numpy.abs(F200), numpy.abs(F200) / 4)
+        print("F_400: ",numpy.abs(F400), numpy.abs(F400) / 4)
+        print("F_600: ",numpy.abs(F600), numpy.abs(F600) / 4)
+        print("F_800: ",numpy.abs(F800), numpy.abs(F800) / 4)

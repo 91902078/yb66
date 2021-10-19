@@ -3,10 +3,17 @@ import numpy
 from urllib.request import urlretrieve
 from silx.io.specfile import SpecFile
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
+from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor, interface_reflectivity
+from xoppy_xraylib_util import f1f2_calc
 import scipy.constants as codata
 
 from scipy.optimize import curve_fit
+
+import scipy.constants as codata
+
+toangstroms = codata.h * codata.c / codata.e * 1e10
+
+import xraylib # TODO: remove this dependency, used for density etc.
 
 """
 X.J. YU, xiaojiang@nus.edu.sg, M. Sanchez del Rio srio@esrf.eu
@@ -19,13 +26,13 @@ dabax_repository="http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"
 #
 # common access tools
 #
-def get_dabax_file(filename, dabax_repository=dabax_repository):
+def get_dabax_file(filename, dabax_repository=dabax_repository, verbose=True):
 
     #
     # file exists in current directory
     #
     if os.path.exists(filename):
-        print("Dabax file exists in local directory: %s " % filename)
+        if verbose: print("Dabax file exists in local directory: %s " % filename)
         return filename
 
     #
@@ -37,7 +44,7 @@ def get_dabax_file(filename, dabax_repository=dabax_repository):
                         filename=filename,
                         reporthook=None,
                         data=None)
-            print("Dabax file %s downloaded from %s" % (filepath, dabax_repository + filename))
+            if verbose: print("Dabax file %s downloaded from %s" % (filepath, dabax_repository + filename))
             return filename
         except:
             raise Exception("Failed to download file %s from %s" % (filename, dabax_repository))
@@ -47,7 +54,7 @@ def get_dabax_file(filename, dabax_repository=dabax_repository):
     #
     f1 = os.path.join(dabax_repository,filename)
     if os.path.exists(f1):
-        print("Dabax file exists in local directory: %s " % f1)
+        if verbose: print("Dabax file exists in local directory: %s " % f1)
         return f1
 
     raise Exception(FileNotFoundError)
@@ -263,7 +270,7 @@ def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", daba
             s1 = sf[index]
             name = s1.scan_header_dict["S"]
             entries.append(name.split('  ')[1])
-        print(entries)
+        # print(entries)
 
         # identify the entries that match the symbol
         interesting_entries = []
@@ -397,16 +404,184 @@ def __symbol_to_from_atomic_number(ATOM):
 def __f0func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
     return calculate_f0_from_f0coeff([a1, a2, a3, a4, a5, a6, a7, a8, a9], q)
 
+#
+# f1f2
+#
+
+def f1f2_calc_dabax(descriptor,
+                    energy,
+                    theta=3.0e-3,
+                    F=0,
+                    density=None,
+                    rough=0.0,
+                    verbose=False,
+                    filename="f1f2_Windt.dat",
+                    dabax_repository=dabax_repository,
+                    interpolation_log=False):
+    """
+    calculate the elastic Photon-Atom anonalous f1 and f2  coefficients as a function of energy.
+    It also gives the refractive index components delta and beta (n=1-delta - i beta),
+    the absorption photoelectric coefficient and the reflectivities (s,p and unpolarized).
+    :param descriptor: string with the element symbol or integer with Z
+    :param energy: array with energies (eV)
+    :param theta: array with grazing angles (rad)
+    :param F: calculation flag:
+
+           F=0 (default) returns a 2-col array with f1 and f2
+           F=1  returns f1
+           F=2  returns f2
+           F=3  returns delta  [n = 1 -delta -i beta]
+           F=4  returns betaf  [n = 1 -delta -i beta]
+           F=5  returns Photoelectric linear absorption coefficient
+           F=6  returns Photoelectric mass absorption coefficient
+           F=7  returns Photoelectric Cross Section
+           F=8  returns s-polarized reflectivity
+           F=9  returns p-polarized reflectivity
+           F=10  returns unpolarized reflectivity
+           F=11  returns delta/betaf
+    :param density: the density to be used for some calculations. If None, get it from xraylib
+    :param rough: the roughness RMS in Angstroms for reflectivity calculations
+    :return: a numpy array with results
+    """
+
+    energy = numpy.array(energy,dtype=float).reshape(-1)
+    theta = numpy.array(theta,dtype=float).reshape(-1)
+
+    if isinstance(descriptor,str):
+        Z = xraylib.SymbolToAtomicNumber(descriptor)
+        symbol = descriptor
+    else:
+        Z = descriptor
+        symbol = xraylib.AtomicNumberToSymbol(descriptor)
+
+    if density is None:
+        density = xraylib.ElementDensity(Z)
+
+    if verbose:
+        print("f1f2_calc: using density: %f g/cm3" % density)
+
+    # access spec file
+
+    file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
+
+    sf = SpecFile(file1)
+
+    flag_found = False
+    for index in range(len(sf)):
+        s1 = sf[index]
+        name = s1.scan_header_dict["S"]
+        line = " ".join(name.split())
+        # print(">>>>>>%s  **%s**" % ( line, line.split(' ')[1]))
+        if (line.split(' ')[1]) == descriptor:
+            flag_found = True
+            index_found = index
+
+    if not flag_found:
+        raise (Exception("Entry name not found: %s" % descriptor))
+
+    zadd = sf[index_found].scan_header_dict["UF1ADD"]
+
+
+    data = sf[index_found].data
+    L = sf.labels(index_found)
+
+    photon_energy = data[0, :].copy()
+
+    if filename in ['f1f2_asf_Kissel.dat','f1f2_Chantler.dat']:
+        photon_energy *= 1e3
+
+    if filename == 'f1f2_asf_Kissel.dat':
+        f1 = data[4,:].copy()
+        f2 =  numpy.abs(data[1,:].copy())
+    else:
+        f1 = data[1, :].copy()
+        f2 = data[2, :].copy()
+
+    if interpolation_log:
+        f1_interpolated = 10 ** numpy.interp(numpy.log10(energy), numpy.log10(photon_energy), numpy.log10(numpy.abs(f1)))
+        f2_interpolated = 10 ** numpy.interp(numpy.log10(energy), numpy.log10(photon_energy), numpy.log10(numpy.abs(f2)))
+    else:
+        f1_interpolated = numpy.interp(energy, photon_energy, f1)
+        f2_interpolated = numpy.interp(energy, photon_energy, f2)
+
+    if zadd != 0: # adds Z if not included in the data
+        f1_interpolated += float(zadd)
+
+    if F == 0:   # F=0 (default) returns a 2-col array with f1 and f2
+        out = numpy.zeros((2,energy.size))
+        out[0,:] = f1_interpolated
+        out[1,:] = f2_interpolated
+        return out
+    elif F == 1: # F=1  returns f1
+        return f1_interpolated
+    elif F == 2: # F=2  returns f2
+        return f2_interpolated
+
+    atwt = xraylib.AtomicWeight(Z)
+    avogadro = codata.Avogadro
+    toangstroms = codata.h * codata.c / codata.e * 1e10
+    re = codata.e ** 2 / codata.m_e / codata.c ** 2 / (4 * numpy.pi * codata.epsilon_0) * 1e2  # in cm
+
+    molecules_per_cc = density * avogadro / atwt
+    wavelength = toangstroms / energy * 1e-8  # in cm
+    k = molecules_per_cc * re * wavelength * wavelength / 2.0 / numpy.pi
+
+    delta = k * f1_interpolated
+    betaf = k * f2_interpolated
+    mu = 4.0 * numpy.pi * betaf / wavelength
+
+    if F == 3:   # F=3  returns delta  [n = 1 -delta -i beta]
+        return delta
+    elif F == 4: # F=4  returns betaf  [n = 1 -delta -i beta]
+        return betaf
+
+    elif F == 5: # F=5  returns Photoelectric linear absorption coefficient
+        return mu
+    elif F == 6: # F=6  returns Photoelectric mass absorption coefficient
+        return mu / density
+    elif F == 7: # F=7  returns Photoelectric Cross Section
+        return mu / molecules_per_cc * 1e24
+    elif F == 11: # F=11  returns delta/betaf
+        return delta / betaf
+    #
+    # mirror reflectivity
+    #
+    alpha = 2.0 * k * f1_interpolated
+    gamma = 2.0 * k * f2_interpolated
+    #
+    rs,rp,runp = interface_reflectivity(alpha,gamma,theta)
+
+
+    if rough != 0:
+        rough *= 1e-8 # to cm
+        debyewaller = numpy.exp( -( 4.0 * numpy.pi * numpy.sin(theta) * rough / wavelength)**2)
+    else:
+        debyewaller = 1.0
+
+    if F == 8:   # returns s-polarized reflectivity
+        return rs * debyewaller
+    elif F == 9: # returns p-polarized reflectivity
+        return rp * debyewaller
+    elif F == 10: # returns unpolarized reflectivity
+        return runp * debyewaller
+
+    raise Exception("Invalid F=%g" % F)
+
+
 
 
 if __name__ == "__main__":
-    # dabax_repository = "http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"
-    dabax_repository = "/scisoft/DABAX/data" # "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+
+    #
+    # at ESRF use one of these. Otherwise comment (use then the default at the top of this file)
+    #
+    # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+    dabax_repository = "/scisoft/DABAX/data"
 
     #
     # crystal tests
     #
-    if True:
+    if False:
         print(get_dabax_file("Crystals.dat", dabax_repository=dabax_repository))
 
         print(get_f0_coeffs_from_dabax_file(entry_name="Y3+",
@@ -425,13 +600,12 @@ if __name__ == "__main__":
     # crystal vs xraylib tests
     #
 
-    if True:
+    if False:
         print(crystal_parser(filename='Crystals.dat', entry_name='YB66', dabax_repository=dabax_repository))
 
         # compare with xraylib
         xdabax = crystal_parser(filename='Crystals.dat', entry_name='Si', dabax_repository=dabax_repository)
 
-        import xraylib
         xxraylib = xraylib.Crystal_GetCrystal('Si')
 
         for key in xxraylib.keys():
@@ -446,7 +620,7 @@ if __name__ == "__main__":
     #
     # f0
     #
-    if True:
+    if False:
         #
         # test f0 data for B3+
         #
@@ -468,3 +642,60 @@ if __name__ == "__main__":
                      "B3plus from f0_with_fractional_charge(5,+2.8)"],
              title="")
 
+    #
+    # f0 another test
+    #
+    if False:
+        from dabax_util import calculate_f0_from_f0coeff, f0_with_fractional_charge
+        #
+        # test f0 data for B3+
+        #
+        q = numpy.array(
+            [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6,
+             1.7, 1.8, 1.9])
+        f0_B3plus = numpy.array(
+            [2, 1.995, 1.979, 1.954, 1.919, 1.875, 1.824, 1.766, 1.703, 1.566, 1.42, 1.274, 1.132, 0.999, 0.877, 0.767,
+             0.669, 0.582, 0.507, 0.441, 0.384, 0.335, 0.293, 0.256])
+
+        #
+        # plot
+        #
+        from srxraylib.plot.gol import plot
+
+        coeff_Bdot = numpy.array([])
+        plot(q, f0_B3plus,
+             q, calculate_f0_from_f0coeff(f0_with_fractional_charge(5, 3.0, dabax_repository=dabax_repository), q),
+             q, calculate_f0_from_f0coeff(f0_with_fractional_charge(5, 2.8, dabax_repository=dabax_repository), q),
+             xtitle=r"q (sin $\theta$ / $\lambda$)", ytitle="f0 [electron units]",
+             legend=["B3plus original",
+                     "B3plus from f0_with_fractional_charge(5,+3)",
+                     "B3plus from f0_with_fractional_charge(5,+2.8)"],
+             title="", show=1)
+
+    #
+    # f1f2 tests
+    #
+
+    if False:
+        files_f1f2 = [
+            "f1f2_asf_Kissel.dat",
+            # "f1f2_BrennanCowan.dat",
+            # "f1f2_Chantler.dat",
+            # "f1f2_CromerLiberman.dat",
+            # "f1f2_EPDL97.dat",
+            # "f1f2_Henke.dat",
+            # "f1f2_Sasaki.dat",
+            # "f1f2_Windt.dat",
+        ]
+
+        for file_f1f2 in files_f1f2:
+            for F in range(12):
+                print("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>F=", F)
+                a_dabax = f1f2_calc_dabax("Si", 10000.0, F=F, theta=2e-3, verbose=0,
+                                      filename=file_f1f2, dabax_repository=dabax_repository )
+                a_xraylib = f1f2_calc      ("Si", 10000.0, F=F, theta=2e-3, verbose=0)
+                diff = (numpy.array(a_dabax) - numpy.array(a_xraylib)) / numpy.array(a_xraylib)
+                print("dabax: ", file_f1f2, a_dabax)
+                print("xraylib: ", a_xraylib)
+                print("diff: ", numpy.abs( diff.sum()))
+                assert (numpy.abs( diff.sum()) < 0.11 )

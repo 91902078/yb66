@@ -1,6 +1,6 @@
 import numpy
-from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc, crystal_fh
-from crystal_util import bragg_calc2, crystal_fh2
+from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc
+from xoppy_dabax_util import bragg_calc2
 from run_diff_pat import run_diff_pat
 from srxraylib.plot.gol import plot
 import os
@@ -69,7 +69,7 @@ if __name__ == "__main__":
          a2[:, 0], a2[:, -1],
          linestyle=[None,''],
          marker=[None,"+"],
-         legend=["XOPPY bragg_calc2 code","NEW bragg_calc2 code"])
+         legend=["XOPPY bragg_calc code","NEW bragg_calc2 code"])
 
 
 

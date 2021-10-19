@@ -1,5 +1,5 @@
 import numpy
-from crystal_util import bragg_calc2, crystal_fh2
+from xoppy_dabax_util import bragg_calc2
 from run_diff_pat import run_diff_pat
 from srxraylib.plot.gol import plot
 
