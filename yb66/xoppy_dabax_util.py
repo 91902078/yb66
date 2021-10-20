@@ -15,7 +15,6 @@ from orangecontrib.xoppy.util.xoppy_xraylib_util import parse_formula
 import xraylib
 
 from xoppy_xraylib_util import bragg_calc, crystal_fh
-from xoppy_xraylib_util import bragg_calc, crystal_fh
 import os
 
 #-------------------------------------------------------------------------
@@ -34,6 +33,8 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                 fileout=None,
                 sourceCryst=2, # 0=xraylib, 1=dabax, 2=auto
                 sourceF0=2,    # 0=xraylib, 1=dabax, 2=auto
+                do_not_prototype=0, # 0=use site groups (recommended), 1=use all individual sites
+                verbose=True,
                 ):
     """
     Preprocessor for Structure Factor (FH) calculations. It calculates the basic ingredients of FH.
@@ -69,7 +70,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         if cryst is None:
             raise Exception("Crystal descriptor %s not found in xraylib" % descriptor)
     elif sourceCryst == 1:
-        cryst = crystal_parser(entry_name=descriptor, dabax_repository=dabax_repository)
+        cryst = crystal_parser(entry_name=descriptor, dabax_repository=dabax_repository, verbose=verbose)
     elif sourceCryst == 2:
         try:
             cryst = xraylib.Crystal_GetCrystal(descriptor)
@@ -78,7 +79,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
             sourceCryst = 0
         except:
             try:
-                cryst = crystal_parser(entry_name=descriptor, dabax_repository=dabax_repository)
+                cryst = crystal_parser(entry_name=descriptor, dabax_repository=dabax_repository, verbose=verbose)
                 sourceCryst = 1
             except:
                 raise Exception("Crystal descriptor %s not found in xraylib nor in dabax" % descriptor)
@@ -160,7 +161,11 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                     ifraction.append(list_fraction[i])
                     unique_indexes_with_fraction.append(i)
 
-        output_dictionary["unique_indexes_with_fraction"] = unique_indexes_with_fraction  # different with diff_pat for complex crystal
+    # do not prototype....
+
+    if do_not_prototype:
+        unique_indexes_with_fraction = numpy.arange(number_of_atoms)
+    output_dictionary["unique_indexes_with_fraction"] = unique_indexes_with_fraction  # different with diff_pat for complex crystal
 
     #
     # get f0 coefficients
@@ -174,14 +179,14 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         elif sourceF0 == 1:
             for i in unique_indexes_with_fraction:
                     f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                            dabax_repository=dabax_repository) )
+                                                            dabax_repository=dabax_repository, verbose=verbose) )
         elif sourceF0 == 2:
             total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
 
             if total_charge_flag != 0: # Use dabax
                 for i in unique_indexes_with_fraction:
                     f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                              dabax_repository=dabax_repository))
+                                                              dabax_repository=dabax_repository, verbose=verbose))
             else: # use xraylib
                 for i in unique_indexes_with_fraction:
                     f0coeffs.append(f0_xop(atom[i]['Zatom']))
@@ -192,7 +197,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
             f0coeffs = []
             for i in unique_indexes_with_fraction:
                     f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                            dabax_repository=dabax_repository) )
+                                                            dabax_repository=dabax_repository, verbose=verbose) )
         else:
             f0coeffs = []
             total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
@@ -200,7 +205,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
             if total_charge_flag != 0: # Use dabax
                 for i in unique_indexes_with_fraction:
                     f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                              dabax_repository=dabax_repository))
+                                                              dabax_repository=dabax_repository, verbose=verbose))
             else: # use xraylib
                 for i in unique_indexes_with_fraction:
                     f0coeffs.append(f0_xop(atom[i]['Zatom']))
@@ -222,13 +227,20 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     output_dictionary["atnum"] = atnum_list
 
 
-    txt += "# for each element-site, the occupation factor\n"
-    unique_fraction = [list_fraction[i] for i in unique_indexes_with_fraction]
-    for z in unique_fraction:
-        txt += "%g " % (z)
-    txt += "\n"
-    output_dictionary["fraction"] = unique_fraction
-
+    if do_not_prototype:
+        txt += "# for each element-site, the occupation factor\n"
+        unique_fraction = [list_fraction[i] for i in range(number_of_atoms)]
+        for z in unique_fraction:
+            txt += "%g " % (1)
+        txt += "\n"
+        output_dictionary["fraction"] = unique_fraction
+    else:
+        txt += "# for each element-site, the occupation factor\n"
+        unique_fraction = [list_fraction[i] for i in unique_indexes_with_fraction]
+        for z in unique_fraction:
+            txt += "%g " % (z)
+        txt += "\n"
+        output_dictionary["fraction"] = unique_fraction
 
     #
     # Consider anisotropic temperature factor
@@ -279,8 +291,12 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         count = 0
         for j in range(len(list_Zatom)):
             if (list_AtomicName[j] == zz) and (list_fraction[j] == fraction): count += 1
-        txt += "%d " % count
-        list_multiplicity.append(count)
+        if do_not_prototype:
+            txt += "%d " % 1
+            list_multiplicity.append(1)
+        else:
+            txt += "%d " % count
+            list_multiplicity.append(count)
     txt += "\n"
     output_dictionary["G_0"] = list_multiplicity
 
@@ -292,10 +308,15 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         ga = 0.0 + 0j
         zz = list_AtomicName[i]
         ff = list_fraction[i]
-        for j in range(number_of_atoms):
-            if list_AtomicName[j] == zz and list_fraction[j] == ff:
-                ga_item = numpy.exp(2j * numpy.pi * (hh * list_x[j] + kk * list_y[j] + ll * list_z[j]))
-                ga += ga_item
+        if do_not_prototype:
+            ga_item = numpy.exp(2j * numpy.pi * (hh * list_x[i] + kk * list_y[i] + ll * list_z[i]))
+            ga += ga_item
+        else:
+            for j in range(number_of_atoms):
+                if list_AtomicName[j] == zz and list_fraction[j] == ff:
+                    ga_item = numpy.exp(2j * numpy.pi * (hh * list_x[j] + kk * list_y[j] + ll * list_z[j]))
+                    ga += ga_item
+
         txt += "(%g,%g) \n" % (ga.real, ga.imag)
         txt += "(%g,%g) \n" % (ga.real, -ga.imag)
         list_g.append(ga)
@@ -348,7 +369,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     if fileout != None:
         with open(fileout, "w") as f:
             f.write(txt)
-            print("File written to disk: %s" % fileout)
+        if verbose: print("File written to disk: %s" % fileout)
 
     return output_dictionary
 
@@ -549,43 +570,50 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
     #
     if descriptor == "YB66":
         ANISO_SEL = 2
+        do_not_prototype = 0
     else:
         ANISO_SEL = 0
+        do_not_prototype = 0
 
     if models[2]:
         dic2a = bragg_calc2(descriptor=descriptor, hh=hh, kk=kk, ll=ll, temper=1.0,
                             emin=energy-100, emax=energy+100, estep=5.0, ANISO_SEL=ANISO_SEL,
-                            fileout="xcrystal.bra")
+                            do_not_prototype=do_not_prototype,
+                            fileout="xcrystal.bra", verbose=False)
         os.system("cp xcrystal.bra xcrystal_2.bra")
+
         dic2b = crystal_fh(dic2a, energy)
+
+
+    if False:
         print(dic2b["info"])
 
-    if models[0]: print("KEYS dict0a: ", dic0a.keys())
-    if models[1]: print("KEYS dict1a: ", dic1a.keys())
-    if models[2]: print("KEYS dict2a: ", dic2a.keys())
-    if models[0]: print("KEYS dict1b: ", dic0b.keys())
-    if models[1]: print("KEYS dict1b: ", dic1b.keys())
-    if models[2]: print("KEYS dict2b: ", dic2b.keys())
+        if models[0]: print("KEYS dict0a: ", dic0a.keys())
+        if models[1]: print("KEYS dict1a: ", dic1a.keys())
+        if models[2]: print("KEYS dict2a: ", dic2a.keys())
+        if models[0]: print("KEYS dict1b: ", dic0b.keys())
+        if models[1]: print("KEYS dict1b: ", dic1b.keys())
+        if models[2]: print("KEYS dict2b: ", dic2b.keys())
 
 
-    # if models[1] and models[2]:
-    #     print(">>> COMPARING RESULT OF bragg_calc NEW  -  XIAOJIANG")
-    #     for key in dic1a.keys():
-    #         if key != "info":
-    #             print(">>>", key, "\n   ", dic1a[key], "\n   ", dic2a[key])
+        # if models[1] and models[2]:
+        #     print(">>> COMPARING RESULT OF bragg_calc NEW  -  XIAOJIANG")
+        #     for key in dic1a.keys():
+        #         if key != "info":
+        #             print(">>>", key, "\n   ", dic1a[key], "\n   ", dic2a[key])
 
 
-    print("For Si 111 at 8 keV: ")
+        print("For Si 111 at % eV: " % energy)
 
-    print("F0:")
-    if models[0]: print(dic0b['F_0'])
-    if models[1]: print(dic1b['F_0'])
-    if models[2]: print(dic2b['F_0'])
+        print("F0:")
+        if models[0]: print(dic0b['F_0'])
+        if models[1]: print(dic1b['F_0'])
+        if models[2]: print(dic2b['F_0'])
 
-    print("STRUCT:")
-    if models[0]: print(dic0b['STRUCT'])
-    if models[1]: print(dic1b['STRUCT'])
-    if models[2]: print(dic2b['STRUCT'])
+        print("STRUCT:")
+        if models[0]: print(dic0b['STRUCT'])
+        if models[1]: print(dic1b['STRUCT'])
+        if models[2]: print(dic2b['STRUCT'])
 
 
     if do_assert:
@@ -614,7 +642,7 @@ if __name__ == "__main__":
     #
     # crystal
     #
-    from xoppy_xraylib_util import bragg_calc, crystal_fh
+    # from xoppy_xraylib_util import bragg_calc, crystal_fh
     from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc as bragg_calc_old
     from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh as crystal_fh_old
 

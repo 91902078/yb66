@@ -64,7 +64,7 @@ def get_dabax_file(filename, dabax_repository=dabax_repository, verbose=True):
 # crystal
 #
 def crystal_parser(filename='Crystals.dat', entry_name='YB66',
-                   dabax_repository=dabax_repository):
+                   dabax_repository=dabax_repository, verbose=True):
     """
     parse a complex crystal structure file into a dictionary (like xraylib.Crystal_GetCrystal('Si'))
 
@@ -73,7 +73,7 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66',
     return a dictionary containing crystal infomation
     """
 
-    file1 = get_dabax_file(filename, dabax_repository=dabax_repository)
+    file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
 
     sf = SpecFile(file1)
 
@@ -253,7 +253,8 @@ def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat
 #setattr(get_f0_coeffs_from_dabax_file,'sf',None)
 
 
-def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", dabax_repository=dabax_repository):
+def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", dabax_repository=dabax_repository,
+                              verbose=True):
     symbol = __symbol_to_from_atomic_number(Z)
 
     if charge == 0.0:
@@ -261,7 +262,7 @@ def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", daba
     else:
         # retrieve all entries
 
-        filename = get_dabax_file(filename, dabax_repository=dabax_repository)
+        filename = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
         sf = SpecFile(filename)
 
         # retrieve all entries
@@ -297,7 +298,7 @@ def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", daba
         for i in index_list:
             coefficient_list.append((sf[i].data)[:, 0])
 
-        return __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coefficient_list)
+        return __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coefficient_list, verbose=verbose)
 
 
 def calculate_f0_from_f0coeff(f0coeff, ratio):
@@ -312,7 +313,7 @@ def calculate_f0_from_f0coeff(f0coeff, ratio):
 # __* are auxiliar routines not to be exported outside
 #
 
-def __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coefficient_list):
+def __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coefficient_list, verbose=True):
     #
     # f0 data
     #
@@ -331,7 +332,7 @@ def __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coef
 
     if numpy.abs(charge_list_difference).min() == 0:
         idx = numpy.abs(charge_list_difference).argmin()
-        print("No interpolating needed: returning value for ", interesting_entries[idx])
+        if verbose: print("No interpolating needed: returning value for ", interesting_entries[idx])
         return coefficient_list[idx]
 
     # get the closer charge values, no matter of the sign
@@ -342,7 +343,7 @@ def __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coef
     delta_data = charge_list[sorted_index_1] - charge_list[sorted_index_0]
     delta_charge = charge - charge_list[sorted_index_0]
     delta = delta_charge / delta_data
-    print("Interpolating charge %g = %s + %g (%s - %s)" % (charge,
+    if verbose: print("Interpolating charge %g = %s + %g (%s - %s)" % (charge,
                                                            interesting_entries[sorted_index_0],
                                                            delta,
                                                            interesting_entries[sorted_index_1],
@@ -360,11 +361,11 @@ def __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coef
     #
     try:
         popt, pcov = curve_fit(__f0func, q, f0, p0=coefficient_list[sorted_index_0], maxfev=20000)
-        print("fitted: ", popt)
+        if verbose: print("fitted: ", popt)
 
         return popt
     except:
-        print("Error: failed to fit coefficients for fractional charge. Returning the ones of ",
+        if verbose: print("Error: failed to fit coefficients for fractional charge. Returning the ones of ",
               interesting_entries[sorted_index_0])
         return coefficient_list[sorted_index_0]
 
@@ -414,7 +415,7 @@ def f1f2_calc_dabax(descriptor,
                     F=0,
                     density=None,
                     rough=0.0,
-                    verbose=False,
+                    verbose=True,
                     filename="f1f2_Windt.dat",
                     dabax_repository=dabax_repository,
                     interpolation_log=False):
@@ -567,6 +568,126 @@ def f1f2_calc_dabax(descriptor,
 
     raise Exception("Invalid F=%g" % F)
 
+def atomic_weights_dabax(descriptor,
+                    filename="AtomicWeights.dat",
+                    return_mode=0,
+                    dabax_repository=dabax_repository,
+                    verbose=True,
+                    ):
+    """
+    ; ATOMIC_WEIGHTS
+    ;
+    ; PURPOSE:
+    ;       Returns atomic weights from DABAX.
+    ;
+    ; CATEGORY:
+    ;       X-Ray optics. DABAX data base.
+    ;
+    ; CALLING SEQUENCE:
+    ;       out = atomic_constants(id,file,return=return)
+    ; INPUTS:
+    ;       id: an identifier string (i.e. 'Si', '70Ge)
+    ;
+    ;       If descriptor is the symbol (e.g., Ge),
+    ;         the averaged atomic mass is returned.
+    ;       If descriptor contains the isotope (number of nucleons) (e.g., 70Ge),
+    ;         the atomic mass for the isotope is returned.
+    ;
+    ;       filename = the DABAX  inout file (default AtomicWeights.dat)
+
+
+    """
+
+    if isinstance(descriptor,str):
+        descriptor = [descriptor]
+        descriptor_is_string = 1
+    else: # is list
+        descriptor_is_string = 0
+
+    # Z = []
+    # for idescriptor in descriptor:
+    #     Z.append( xraylib.SymbolToAtomicNumber(idescriptor) )
+
+    # access spec file
+
+    file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
+
+    sf = SpecFile(file1)
+
+    out = []
+
+    for idescriptor in descriptor:
+        flag_found = False
+        index_found = []
+        for index in range(len(sf)):
+            s1 = sf[index]
+            name = s1.scan_header_dict["S"]
+            line = " ".join(name.split())
+            scan_name = line.split(' ')[1]
+            # print(">>>>>>%s  **%s**" % ( line, scan_name))
+            if scan_name[-len(idescriptor):] == idescriptor:
+                flag_found = True
+                index_found.append(index)
+
+        if not flag_found:
+            raise (Exception("Entry name not found: %s" % idescriptor))
+
+        data = sf[index_found[0]].data
+
+        if idescriptor[0].isdigit():
+            out.append(data[0,0])
+        else:
+            out.append(data[2,0])
+
+    if descriptor_is_string:
+        return out[0]
+    else:
+        return out
+
+
+def atomic_symbols_dabax():
+    return [
+    'Vacuum','H ','He','Li','Be','B ','C ','N ','O ','F ','Ne',
+    'Na','Mg','Al','Si','P ','S ','Cl','Ar','K ','Ca',
+    'Sc','Ti','V ','Cr','Mn','Fe','Co','Ni','Cu','Zn',
+    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y ','Zr',
+    'Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn',
+    'Sb','Te','I ','Xe','Cs','Ba','La','Ce','Pr','Nd',
+    'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb',
+    'Lu','Hf','Ta','W ','Re','Os','Ir','Pt','Au','Hg',
+    'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
+    'Pa','U ','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
+    'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds',
+    'Rg','Uub','Uut','Uuq','Uup','Uuh','Uus','Uuo']
+
+def atomic_names_dabax():
+    return [
+            'Vacuum',
+            'Hydrogen', 'Helium', 'Lithium', 'Beryllium', 'Boron',
+            'Carbon', 'Nitrogen', 'Oxygen', 'Fluorine', 'Neon',
+            'Sodium', 'Magnesium', 'Aluminum', 'Silicon', 'Phosphorus',
+            'Sulfur', 'Chlorine', 'Argon', 'Potassium', 'Calcium',
+            'Scandium', 'Titanium', 'Vanadium', 'Chromium', 'Manganese',
+            'Iron', 'Cobalt', 'Nickel', 'Copper', 'Zinc',
+            'Gallium', 'Germanium', 'Arsenic', 'Selenium', 'Bromine',
+            'Krypton', 'Rubidium', 'Strontium', 'Yttrium', 'Zirconium',
+            'Niobium', 'Molybdenum', 'Technetium', 'Ruthenium', 'Rhodium',
+            'Palladium', 'Silver', 'Cadmium', 'Indium', 'Tin',
+            'Antimony', 'Tellurium', 'Iodine', 'Xenon', 'Cesium',
+            'Barium', 'Lanthanum', 'Cerium', 'Praseodymium', 'Neodymium',
+            'Promethium', 'Samarium', 'Europium', 'Gadolinium', 'Terbium',
+            'Dysprosium', 'Holmium', 'Erbium', 'Thulium', 'Ytterbium',
+            'Lutetium', 'Hafnium', 'Tantalum', 'Tungsten', 'Rhenium',
+            'Osmium', 'Iridium', 'Platinum', 'Gold', 'Mercury',
+            'Thallium', 'Lead', 'Bismuth', 'Polonium', 'Astatine',
+            'Radon', 'Francium', 'Radium', 'Actinium', 'Thorium',
+            'Protactinium', 'Uranium', 'Neptunium', 'Plutonium', 'Americium',
+            'Curium', 'Berkelium', 'Californium', 'Einsteinium', 'Fermium',
+            'Mendelevium', 'Nobelium', 'Lawrencium', 'Rutherfordium', 'Dubnium',
+            'Seaborgium', 'Bohrium', 'Hassium', 'Meitnerium', 'Darmstadtium',
+            'Roentgenium', 'Ununbium', 'Ununtrium', 'Ununquadium', 'Ununpentium',
+            'Ununhexium', 'Ununseptium', 'Ununoctium']
+
 
 
 
@@ -699,3 +820,11 @@ if __name__ == "__main__":
                 print("xraylib: ", a_xraylib)
                 print("diff: ", numpy.abs( diff.sum()))
                 assert (numpy.abs( diff.sum()) < 0.11 )
+
+    if True:
+
+        print("Ge, Si: ", atomic_weights_dabax(["Ge","Si"],dabax_repository=dabax_repository))
+        print("70Ge: ", atomic_weights_dabax("70Ge",dabax_repository=dabax_repository))
+        # print("40Ge: ", atomic_weights_dabax("40Ge",dabax_repository=dabax_repository))
+
+        print(atomic_symbols_dabax()[14], atomic_names_dabax()[14])
