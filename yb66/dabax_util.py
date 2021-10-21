@@ -4,28 +4,18 @@ from urllib.request import urlretrieve
 from silx.io.specfile import SpecFile
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor, interface_reflectivity
-from xoppy_xraylib_util import f1f2_calc
-import scipy.constants as codata
-
 from scipy.optimize import curve_fit
-
 import scipy.constants as codata
 
-toangstroms = codata.h * codata.c / codata.e * 1e10
+# toangstroms = codata.h * codata.c / codata.e * 1e10
 
-import xraylib # TODO: remove this dependency, used for density etc.
-
-"""
-X.J. YU, xiaojiang@nus.edu.sg, M. Sanchez del Rio srio@esrf.eu
-"""
-
-# global dabax_repository
+# global default dabax_repository
 dabax_repository="http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"
 
 
-#
+#########################
 # common access tools
-#
+#########################
 def get_dabax_file(filename, dabax_repository=dabax_repository, verbose=True):
 
     #
@@ -60,9 +50,9 @@ def get_dabax_file(filename, dabax_repository=dabax_repository, verbose=True):
     raise Exception(FileNotFoundError)
 
 
-#
+#########################
 # crystal
-#
+#########################
 def crystal_parser(filename='Crystals.dat', entry_name='YB66',
                    dabax_repository=dabax_repository, verbose=True):
     """
@@ -181,11 +171,11 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66',
  
     return cryst
 
-def Crystal_GetCrystalsList(dabax_repository=dabax_repository):
+def Crystal_GetCrystalsList(dabax_repository=dabax_repository, verbose=True):
     """
     get crystal names from crystals.dat
     """
-    file1 = get_dabax_file('Crystals.dat', dabax_repository=dabax_repository)
+    file1 = get_dabax_file('Crystals.dat', dabax_repository=dabax_repository, verbose=verbose)
     sf = SpecFile(file1)
     crystals = []
     for index in range(len(sf)):
@@ -220,19 +210,17 @@ def Bragg_angle(cryst, E_keV, h, k, l):
     wavelength = codata.h * codata.c / codata.e / (E_keV * 1e3) * 1e10 # in A
     return numpy.arcsin(wavelength / 2 / dspacing)
 
-
-
-#
+#########################
 # f0
-#
+#########################
 
 def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat",
-                                  dabax_repository=dabax_repository):
+                                  dabax_repository=dabax_repository, verbose=True):
 
     # if getattr(get_f0_coeffs_from_dabax_file,'sf') is not None:
     #     sf = getattr(get_f0_coeffs_from_dabax_file,'sf')
     # else:
-    file1 = get_dabax_file(filename, dabax_repository=dabax_repository)
+    file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
     sf = SpecFile(file1)
         # get_f0_coeffs_from_dabax_file.sf = sf
 
@@ -369,45 +357,12 @@ def __f0_interpolate_coefficients(charge, interesting_entries, charge_list, coef
               interesting_entries[sorted_index_0])
         return coefficient_list[sorted_index_0]
 
-
-def __symbol_to_from_atomic_number(ATOM):
-    atoms = [ [1 ,"H"] ,[2 ,"He"] ,[3 ,"Li"] ,[4 ,"Be"] ,[5 ,"B"] ,[6 ,"C"] ,[7 ,"N"] ,[8 ,"O"] ,[9 ,"F"] ,[10 ,"Ne"], \
-                 [11 ,"Na"] ,[12 ,"Mg"] ,[13 ,"Al"] ,[14 ,"Si"] ,[15 ,"P"] ,[16 ,"S"] ,[17 ,"Cl"] ,[18 ,"Ar"] ,[19 ,"K"]
-             ,[20 ,"Ca"], \
-                 [21 ,"Sc"] ,[22 ,"Ti"] ,[23 ,"V"] ,[24 ,"Cr"] ,[25 ,"Mn"] ,[26 ,"Fe"] ,[27 ,"Co"] ,[28 ,"Ni"] ,[29 ,"Cu"]
-             ,[30 ,"Zn"], \
-                 [31 ,"Ga"] ,[32 ,"Ge"] ,[33 ,"As"] ,[34 ,"Se"] ,[35 ,"Br"] ,[36 ,"Kr"] ,[37 ,"Rb"] ,[38 ,"Sr"] ,[39 ,"Y"]
-             ,[40 ,"Zr"], \
-                 [41 ,"Nb"] ,[42 ,"Mo"] ,[43 ,"Tc"] ,[44 ,"Ru"] ,[45 ,"Rh"] ,[46 ,"Pd"] ,[47 ,"Ag"] ,[48 ,"Cd"] ,[49 ,"In"]
-             ,[50 ,"Sn"], \
-                 [51 ,"Sb"] ,[52 ,"Te"] ,[53 ,"I"] ,[54 ,"Xe"] ,[55 ,"Cs"] ,[56 ,"Ba"] ,[57 ,"La"] ,[58 ,"Ce"] ,[59 ,"Pr"]
-             ,[60 ,"Nd"], \
-                 [61 ,"Pm"] ,[62 ,"Sm"] ,[63 ,"Eu"] ,[64 ,"Gd"] ,[65 ,"Tb"] ,[66 ,"Dy"] ,[67 ,"Ho"] ,[68 ,"Er"] ,[69 ,"Tm"]
-             ,[70 ,"Yb"], \
-                 [71 ,"Lu"] ,[72 ,"Hf"] ,[73 ,"Ta"] ,[74 ,"W"] ,[75 ,"Re"] ,[76 ,"Os"] ,[77 ,"Ir"] ,[78 ,"Pt"] ,[79 ,"Au"]
-             ,[80 ,"Hg"], \
-                 [81 ,"Tl"] ,[82 ,"Pb"] ,[83 ,"Bi"] ,[84 ,"Po"] ,[85 ,"At"] ,[86 ,"Rn"] ,[87 ,"Fr"] ,[88 ,"Ra"] ,[89 ,"Ac"]
-             ,[90 ,"Th"], \
-                 [91 ,"Pa"] ,[92 ,"U"] ,[93 ,"Np"] ,[94 ,"Pu"] ,[95 ,"Am"] ,[96 ,"Cm"] ,[97 ,"Bk"] ,[98 ,"Cf"] ,[99 ,"Es"]
-             ,[100 ,"Fm"], \
-                 [101 ,"Md"] ,[102 ,"No"] ,[103 ,"Lr"] ,[104 ,"Rf"] ,[105 ,"Db"] ,[106 ,"Sg"] ,[107 ,"Bh"] 	]
-
-    if isinstance(ATOM ,int):
-        for a in atoms:
-            if a[0] == ATOM:
-                return a[1]
-    for a in atoms:
-        if a[1] == ATOM:
-            return int(a[0])
-
-    raise Exception("Why are you here?", ATOM)
-
 def __f0func(q, a1, a2, a3, a4, a5, a6, a7, a8, a9):
     return calculate_f0_from_f0coeff([a1, a2, a3, a4, a5, a6, a7, a8, a9], q)
 
-#
+#########################
 # f1f2
-#
+#########################
 
 def f1f2_calc_dabax(descriptor,
                     energy,
@@ -449,14 +404,14 @@ def f1f2_calc_dabax(descriptor,
     theta = numpy.array(theta,dtype=float).reshape(-1)
 
     if isinstance(descriptor,str):
-        Z = xraylib.SymbolToAtomicNumber(descriptor)
+        Z = atomic_number_dabax(descriptor)
         symbol = descriptor
     else:
         Z = descriptor
-        symbol = xraylib.AtomicNumberToSymbol(descriptor)
+        symbol = atomic_symbols_dabax(descriptor)
 
     if density is None:
-        density = xraylib.ElementDensity(Z)
+        density = element_density_dabax(symbol, dabax_repository=dabax_repository, verbose=verbose)
 
     if verbose:
         print("f1f2_calc: using density: %f g/cm3" % density)
@@ -518,7 +473,8 @@ def f1f2_calc_dabax(descriptor,
     elif F == 2: # F=2  returns f2
         return f2_interpolated
 
-    atwt = xraylib.AtomicWeight(Z)
+    # atwt = xraylib.AtomicWeight(Z)
+    atwt = atomic_weights_dabax(symbol, dabax_repository=dabax_repository, verbose=verbose)
     avogadro = codata.Avogadro
     toangstroms = codata.h * codata.c / codata.e * 1e10
     re = codata.e ** 2 / codata.m_e / codata.c ** 2 / (4 * numpy.pi * codata.epsilon_0) * 1e2  # in cm
@@ -568,9 +524,220 @@ def f1f2_calc_dabax(descriptor,
 
     raise Exception("Invalid F=%g" % F)
 
+
+
+
+#########################
+# cross section
+#########################
+
+def cross_calc_dabax(descriptor,
+                    energy,
+                    col_titles=None,
+                    theta=3.0e-3,
+                    partial="TotalCrossSection",
+                    casematch=1,
+                    density=None,
+                    unit=0,
+                    verbose=True,
+                    filename="CrossSec_EPDL97.dat",
+                    dabax_repository=dabax_repository,
+                    interpolation_log=False):
+    """
+    ;       CROSS_CALC
+    ;
+    ;	calculate the atomic cross sections and attenuation coefficients.
+    ;	It uses data from DABAX data-base.
+    ;
+    ;
+    ; CALLING SEQUENCE:
+    ;	out = cross_calc(input,descriptor[,energy,col_titles])
+    ; INPUTS:
+    ;	input: a dabax input file as accepted by dabax_access().
+    ;	       The program also accepts the empty string '' and
+    ;		takes the first cross section file in the list.
+    ;	descriptor: a string  with a description of the material.
+    ;		The string is searched in the scan titles #S in order
+    ;		to find the appropiated data.
+    ; OPTIONAL INPUTS:
+    ;	energy: if undefined, it uses the standard energy grid,
+    ;		When energy is defined, this value is used as a grid
+    ;		for the results (it interpolates in the case of
+    ;		tabulated data). Always in eV.
+    ; OPTIONAL OUTPUTS:
+    ;	col_titles: A array of strings with the labels of the data returned
+    ;		in "out"
+    ;
+    ; KEYWORDS:
+    ;	PARTIAL= Text string that has to be matched with the column titles
+    ;		in the DABAX data file. It is used to extract partial cross
+    ;		sections. For example PARTIAL='TotalCrossSection' (default value) will
+    ;		output the columns having this word in their labels, thus
+    ;		the total cross section. Use for example 'Compton', or
+    ;		'Rayleigh' if you want to extract only one of the other partial
+    ;		cross sections or absorption coefficients. This keyword is
+    ;		case-insensitive unless you set the CASEMATCH keyword.
+    ;	CASEMATCH= to be used together with the PARTIAL keyword.
+    ;		When this keyword is set to 1, the matching for the text
+    ;		in PARTIAL is case sensitive.
+    ;	DENSITY= the density value to be used for the calculations. If
+    ;		not defined, take the value given by Atomic_Constants().
+    ;               (used only if UNIT=3)
+    ;	UNIT= An integer indicating the unit of the output array
+    ;		0 (default): barn/atom (Cross Section calculation)
+    ;		1 : cm^2 (Cross Section calculation)
+    ;		2 : cm^2/g (Mass Attenuation Coefficient)
+    ;		3 : cm^-1 (Linear Attenuation Coefficient)
+    ;   VERBOSE= If set (default is verbose=1) prints some info.
+    ; OUTPUT:
+    ;	out: an array with the values of the selected return parameter(s).
+    ;
+    ; PROCEDURE:
+    ;	Takes the CrossSection values from the DABAX files. It also takes the
+    ;	Atomic constants from DABAX, and performs the classical
+    ;	operations to calculate the other parameters.
+    ;
+    ; EXAMPLES:
+
+
+    """
+
+    energy = numpy.array(energy,dtype=float).reshape(-1)
+
+    if isinstance(descriptor,str):
+        Z = atomic_number_dabax(descriptor)
+        symbol = descriptor
+    else:
+        Z = descriptor
+        symbol =atomic_symbols_dabax()[descriptor]
+
+    if density is None:
+        density = element_density_dabax(symbol, dabax_repository=dabax_repository, verbose=verbose)
+
+    if verbose:
+        print("cross_calc: using density: %f g/cm3" % density)
+
+    # access spec file
+
+    file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
+
+    sf = SpecFile(file1)
+
+    flag_found = False
+    for index in range(len(sf)):
+        s1 = sf[index]
+        name = s1.scan_header_dict["S"]
+        line = " ".join(name.split())
+        if (line.split(' ')[1]) == descriptor:
+            flag_found = True
+            index_found = index
+            break
+
+    if not flag_found:
+        raise (Exception("Entry name not found: %s" % descriptor))
+
+
+
+    if partial is None:
+        F = 'TotalCrossSection'
+    else:
+        F = partial
+
+
+    data = sf[index_found].data
+    L = sf.labels(index_found)
+
+    for i,iL in enumerate(L):
+        if "PhotonEnergy" in iL:
+            index_energy = i
+            break
+
+    fconv = 1.0
+    if "KEV" in L[index_energy].upper():
+        fconv = 1e3
+    elif "MEV" in L[index_energy].upper():
+        fconv = 1e6
+
+    for i, iL in enumerate(L):
+        if F in iL:
+            index_column = i
+            break
+    if verbose: print(">>>>>>>>>>>>>>>>>>> extracting: ", index_energy, index_column, L[index_energy].capitalize(), L[index_column], "fconv: ",fconv)
+
+    photon_energy = data[index_energy, :].copy() * fconv
+    cross_section = data[index_column, :].copy()
+
+    # from srxraylib.plot.gol import plot
+    # plot(photon_energy, cross_section, xlog=1, ylog=1)
+
+    if interpolation_log:
+        cross_section_interpolated = 10 ** numpy.interp(numpy.log10(energy), numpy.log10(photon_energy), numpy.log10(numpy.abs(cross_section)))
+    else:
+        cross_section_interpolated = numpy.interp(energy, photon_energy, cross_section)
+
+    if unit == 0:
+        str_unit = 'barn/atom'
+    elif unit == 1: # cm^2
+        cross_section_interpolated *= 1e-24
+        str_unit = 'cm^2'
+    elif unit == 2: # cm^2/g
+        cf = 1e-24 * codata.Avogadro / \
+             atomic_constants_dabax(descriptor,return_label='AtomicMass',dabax_repository=dabax_repository,verbose=verbose)
+        cross_section_interpolated *= cf
+        str_unit = 'cm^2/g'
+    elif unit == 3: # cm^-1
+        cf = 1e-24 * codata.Avogadro / \
+             atomic_constants_dabax(descriptor,return_label='AtomicMass',dabax_repository=dabax_repository,verbose=verbose) * density
+        cross_section_interpolated *= cf
+        str_unit = 'cm^-1'
+
+    return cross_section_interpolated
+
+
+
+#
+# tools
+#
+
+def __symbol_to_from_atomic_number(ATOM):
+    atoms = [ [1 ,"H"] ,[2 ,"He"] ,[3 ,"Li"] ,[4 ,"Be"] ,[5 ,"B"] ,[6 ,"C"] ,[7 ,"N"] ,[8 ,"O"] ,[9 ,"F"] ,[10 ,"Ne"], \
+                 [11 ,"Na"] ,[12 ,"Mg"] ,[13 ,"Al"] ,[14 ,"Si"] ,[15 ,"P"] ,[16 ,"S"] ,[17 ,"Cl"] ,[18 ,"Ar"] ,[19 ,"K"]
+             ,[20 ,"Ca"], \
+                 [21 ,"Sc"] ,[22 ,"Ti"] ,[23 ,"V"] ,[24 ,"Cr"] ,[25 ,"Mn"] ,[26 ,"Fe"] ,[27 ,"Co"] ,[28 ,"Ni"] ,[29 ,"Cu"]
+             ,[30 ,"Zn"], \
+                 [31 ,"Ga"] ,[32 ,"Ge"] ,[33 ,"As"] ,[34 ,"Se"] ,[35 ,"Br"] ,[36 ,"Kr"] ,[37 ,"Rb"] ,[38 ,"Sr"] ,[39 ,"Y"]
+             ,[40 ,"Zr"], \
+                 [41 ,"Nb"] ,[42 ,"Mo"] ,[43 ,"Tc"] ,[44 ,"Ru"] ,[45 ,"Rh"] ,[46 ,"Pd"] ,[47 ,"Ag"] ,[48 ,"Cd"] ,[49 ,"In"]
+             ,[50 ,"Sn"], \
+                 [51 ,"Sb"] ,[52 ,"Te"] ,[53 ,"I"] ,[54 ,"Xe"] ,[55 ,"Cs"] ,[56 ,"Ba"] ,[57 ,"La"] ,[58 ,"Ce"] ,[59 ,"Pr"]
+             ,[60 ,"Nd"], \
+                 [61 ,"Pm"] ,[62 ,"Sm"] ,[63 ,"Eu"] ,[64 ,"Gd"] ,[65 ,"Tb"] ,[66 ,"Dy"] ,[67 ,"Ho"] ,[68 ,"Er"] ,[69 ,"Tm"]
+             ,[70 ,"Yb"], \
+                 [71 ,"Lu"] ,[72 ,"Hf"] ,[73 ,"Ta"] ,[74 ,"W"] ,[75 ,"Re"] ,[76 ,"Os"] ,[77 ,"Ir"] ,[78 ,"Pt"] ,[79 ,"Au"]
+             ,[80 ,"Hg"], \
+                 [81 ,"Tl"] ,[82 ,"Pb"] ,[83 ,"Bi"] ,[84 ,"Po"] ,[85 ,"At"] ,[86 ,"Rn"] ,[87 ,"Fr"] ,[88 ,"Ra"] ,[89 ,"Ac"]
+             ,[90 ,"Th"], \
+                 [91 ,"Pa"] ,[92 ,"U"] ,[93 ,"Np"] ,[94 ,"Pu"] ,[95 ,"Am"] ,[96 ,"Cm"] ,[97 ,"Bk"] ,[98 ,"Cf"] ,[99 ,"Es"]
+             ,[100 ,"Fm"], \
+                 [101 ,"Md"] ,[102 ,"No"] ,[103 ,"Lr"] ,[104 ,"Rf"] ,[105 ,"Db"] ,[106 ,"Sg"] ,[107 ,"Bh"] 	]
+
+    if isinstance(ATOM ,int):
+        for a in atoms:
+            if a[0] == ATOM:
+                return a[1]
+    for a in atoms:
+        if a[1] == ATOM:
+            return int(a[0])
+
+    raise Exception("Why are you here?", ATOM)
+
+
+#
+#
+#
+
 def atomic_weights_dabax(descriptor,
                     filename="AtomicWeights.dat",
-                    return_mode=0,
                     dabax_repository=dabax_repository,
                     verbose=True,
                     ):
@@ -603,10 +770,6 @@ def atomic_weights_dabax(descriptor,
         descriptor_is_string = 1
     else: # is list
         descriptor_is_string = 0
-
-    # Z = []
-    # for idescriptor in descriptor:
-    #     Z.append( xraylib.SymbolToAtomicNumber(idescriptor) )
 
     # access spec file
 
@@ -643,7 +806,6 @@ def atomic_weights_dabax(descriptor,
         return out[0]
     else:
         return out
-
 
 def atomic_symbols_dabax():
     return [
@@ -689,21 +851,205 @@ def atomic_names_dabax():
             'Ununhexium', 'Ununseptium', 'Ununoctium']
 
 
+def atomic_number_dabax(symbol):
+    return atomic_symbols_dabax().index(symbol)
+
+def atomic_constants_dabax(descriptor,
+                    filename="AtomicConstants.dat",
+                    dabax_repository=dabax_repository,
+                    verbose=True,
+                    return_item=0,
+                    return_label=None,
+                    ):
+    """
+
+    ; NAME:
+    ;       ATOMIC CONSTANTS
+    ;
+    ; PURPOSE:
+    ;	Returns atomic constants from DABAX.
+    ;
+    ; CALLING SEQUENCE:
+    ;	out = atomic_constants(id,file,return=return)
+    ; INPUTS:
+    ;	id: an identifier (or an array of identifiers) to be found in the
+    ;	scan title (i.e. 'Si') or the scan number (i.e. 14)
+    ; OPTIONAL INPUTS:
+    ;	h (input/output) the dabax handle of the file to be used.
+    ;	  If h is undefined or equal to 0, then the returned value is the
+    ;	  dabax handle. If h is defined, then uses this value to point to
+    ;	  the dabax file. This option is useful when calling
+    ;	  atomic_constants sequantially: the first call initiallizes h and
+    ;	  this value is reused (saving time) in the following calls.
+    ;
+    ; KEYWORDS:
+    ;	File = the DABAX  inout file (if not set, AtomicConstants.dat is taken)
+    ;	Return = the variable to be returned. You can use either the
+    ;		number of the column in the DABAX file, or a text
+    ;		identifier (case insensitive) listed below:
+    ;		return_label='AtomicRadius'	             or return_item=0
+    ;		return_label='CovalentRadius'	         or return_item=1
+    ;		return_label='AtomicMass'	             or return_item=2
+    ;		return_label='BoilingPoint'	             or return_item=3
+    ;		return_label='MeltingPoint'	             or return_item=4
+    ;		return_label='Density'	                 or return_item=5
+    ;		return_label='AtomicVolume'	             or return_item=6
+    ;		return_label='CoherentScatteringLength'	 or return_item=7
+    ;		return_label='IncoherentX-section'	     or return_item=8
+    ;		return_label='Absorption@1.8A'	         or return_item=9
+    ;		return_label='DebyeTemperature'          or return_item=10
+    ;		return_label='ThermalConductivity'       or return_item=11
+    ;
+    ;
+    ;
+    ; OUTPUT:
+    ;	out: the value of the selected parameter
+
+    ;
+    ; EXAMPLES:
+    ;	print(atomic_constants('Si',return='AtomicMass'))
+    ;	    28.085500
+    ;	print(atomic_constants(14,return='AtomicMass'))
+    ;           28.085500
+    ;	print(atomic_constants([14,27],return='AtomicMass'))
+    ;	    28.085500       58.933200
+    ;
+    ;-
+
+    """
+
+    if isinstance(descriptor,str):
+        descriptor = [descriptor]
+        descriptor_is_string = 1
+    else: # is list
+        descriptor_is_string = 0
+
+    return_index = -1
+    if return_label is None:
+        return_index = return_item
+    else:
+        if return_label == 'AtomicRadius'	            : return_index = 0
+        if return_label == 'CovalentRadius'	            : return_index = 1
+        if return_label == 'AtomicMass'	                : return_index = 2
+        if return_label == 'BoilingPoint'	            : return_index = 3
+        if return_label == 'MeltingPoint'	            : return_index = 4
+        if return_label == 'Density'	                : return_index = 5
+        if return_label == 'AtomicVolume'	            : return_index = 6
+        if return_label == 'CoherentScatteringLength'	: return_index = 7
+        if return_label == 'IncoherentX-section'	    : return_index = 8
+        if return_label == 'Absorption@1.8A'	        : return_index = 9
+        if return_label == 'DebyeTemperature'           : return_index = 10
+        if return_label == 'ThermalConductivity'        : return_index = 11
+
+
+    if return_index == -1: raise Exception("Bad item index")
+    # access spec file
+
+    file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
+
+    sf = SpecFile(file1)
+
+    out = []
+
+    for idescriptor in descriptor:
+
+        for index in range(len(sf)):
+            flag_found = False
+            s1 = sf[index]
+            name = s1.scan_header_dict["S"]
+            scan_name = name.split('  ')[1]
+            if scan_name == idescriptor:
+                flag_found = True
+                index_found = index
+                break
+
+        if flag_found:
+            out.append((sf[index_found].data)[return_index, 0])
+        else:
+            raise Exception("Data not found for %s " % idescriptor)
+
+    if descriptor_is_string:
+        return out[0]
+    else:
+        return out
+
+
+
+
+def element_density_dabax(descriptor,
+                    filename="AtomicConstants.dat",
+                    dabax_repository=dabax_repository, verbose=True,):
+
+    return atomic_constants_dabax(descriptor, filename=filename, return_label="Density",dabax_repository=dabax_repository, verbose=verbose)
+
+
+def parse_formula(formula): # included now in xraylib, so not used but kept for other possible uses
+    """
+
+    :param formula: a formule (e.g. H2O)
+    :return: a dictionary with tags: "Symbols","Elements","n","atomicWeight","massFractions","molecularWeight"
+
+    """
+    import re
+    # tmp = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
+    tmp = re.findall(r'([A-Z][a-z]*)(\d\.?\d?)', formula)
+    # [+-]?([0-9]*[.])?[0-9]+
+    print(">>>>>>>>>>>>>>>>>>>>>", formula, tmp)
+    elements = []
+    fatomic = []
+    atomic_weight = []
+    zetas = []
+    massFractions = []
+    for element,str_number in tmp:
+        if str_number == '':
+            number = 1
+        else:
+            number = float(str_number)
+
+        elements.append(element)
+        fatomic.append(float(number))
+        zetas.append(xraylib.SymbolToAtomicNumber(element))
+        atomic_weight.append(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
+        massFractions.append(number*xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
+
+    mweight = 0.0
+    for i in range(len(fatomic)):
+        mweight += atomic_weight[i] * fatomic[i]
+    print("Molecular weight: ",mweight)
+
+    for i in range(len(massFractions)):
+        massFractions[i] /= mweight
+
+    old_dict = {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
+    new_dict = {"nElements": len(elements),
+                "nAtomsAll": float(numpy.array(fatomic).sum()),
+                "Elements":zetas,
+                "massFractions": massFractions,
+                "nAtoms":fatomic,
+                "molarMass": mweight}
+
+    return new_dict
 
 
 if __name__ == "__main__":
 
+    import xraylib # for comparisons
+    from srxraylib.plot.gol import plot
+
     #
     # at ESRF use one of these. Otherwise comment (use then the default at the top of this file)
     #
-    # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+    dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
     dabax_repository = "/scisoft/DABAX/data"
+
+
+
 
     #
     # crystal tests
     #
     if False:
-        print(get_dabax_file("Crystals.dat", dabax_repository=dabax_repository))
+        print(get_dabax_file("Crystals.dat", dabax_repository=dabax_repository, verbose=0))
 
         print(get_f0_coeffs_from_dabax_file(entry_name="Y3+",
                                             filename="f0_InterTables.dat",
@@ -798,33 +1144,115 @@ if __name__ == "__main__":
     #
 
     if False:
+        from xoppy_xraylib_util import f1f2_calc
+
         files_f1f2 = [
             "f1f2_asf_Kissel.dat",
-            # "f1f2_BrennanCowan.dat",
-            # "f1f2_Chantler.dat",
-            # "f1f2_CromerLiberman.dat",
-            # "f1f2_EPDL97.dat",
-            # "f1f2_Henke.dat",
-            # "f1f2_Sasaki.dat",
-            # "f1f2_Windt.dat",
+            "f1f2_BrennanCowan.dat",
+            "f1f2_Chantler.dat",
+            "f1f2_CromerLiberman.dat",
+            "f1f2_EPDL97.dat",
+            "f1f2_Henke.dat",
+            "f1f2_Sasaki.dat",
+            "f1f2_Windt.dat",
         ]
+        out = []
+        energy = numpy.linspace(1000,28000,500)
+        F=1  #             for F in [1]: # range(12)
+        tmpX = f1f2_calc("Si", energy, F=F, theta=2e-3, verbose=0)
+        out.append(tmpX)
 
         for file_f1f2 in files_f1f2:
-            for F in range(12):
-                print("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>F=", F)
-                a_dabax = f1f2_calc_dabax("Si", 10000.0, F=F, theta=2e-3, verbose=0,
-                                      filename=file_f1f2, dabax_repository=dabax_repository )
-                a_xraylib = f1f2_calc      ("Si", 10000.0, F=F, theta=2e-3, verbose=0)
-                diff = (numpy.array(a_dabax) - numpy.array(a_xraylib)) / numpy.array(a_xraylib)
-                print("dabax: ", file_f1f2, a_dabax)
-                print("xraylib: ", a_xraylib)
-                print("diff: ", numpy.abs( diff.sum()))
-                assert (numpy.abs( diff.sum()) < 0.11 )
+            tmp = f1f2_calc_dabax("Si", energy, F=F, theta=2e-3, verbose=0,
+                                  filename=file_f1f2, dabax_repository=dabax_repository )
+            out.append(tmp)
+
+
+        legend = ['xraylib']
+        for file_f1f2 in files_f1f2:
+            legend.append(file_f1f2)
+
+        plot(energy, out[0],
+             energy, out[1],
+             energy, out[2],
+             energy, out[3],
+             energy, out[4],
+             energy, out[5],
+             energy, out[6],
+             energy, out[7],
+             energy, out[8],
+             legend=legend,
+             xlog=1,ylog=1)
+
+        for F in range(12):
+            a_xraylib = f1f2_calc("Si", 10000, F=F, theta=2e-3, verbose=0)
+            a_dabax = f1f2_calc_dabax("Si", 10000, F=F, theta=2e-3, verbose=0,
+                                  filename=file_f1f2, dabax_repository=dabax_repository)
+            diff = (numpy.array(a_dabax) - numpy.array(a_xraylib)) / numpy.array(a_xraylib)
+            print("dabax: ", file_f1f2, a_dabax)
+            print("xraylib: ", a_xraylib)
+            print("diff: ", numpy.abs( diff.sum()))
+            assert (numpy.abs( diff.sum()) < 0.11 )
+
 
     if True:
-
+        #
+        # misc
+        #
         print("Ge, Si: ", atomic_weights_dabax(["Ge","Si"],dabax_repository=dabax_repository))
         print("70Ge: ", atomic_weights_dabax("70Ge",dabax_repository=dabax_repository))
-        # print("40Ge: ", atomic_weights_dabax("40Ge",dabax_repository=dabax_repository))
 
         print(atomic_symbols_dabax()[14], atomic_names_dabax()[14])
+
+        print("Si atomic mass", atomic_constants_dabax("Si", return_item=2, dabax_repository=dabax_repository, verbose=0))
+        print("Si,Ge atomic mass", atomic_constants_dabax(["Si","Ge"], return_item=2, dabax_repository=dabax_repository, verbose=0))
+        print("Si,Co atomic mass", atomic_constants_dabax(["Si", "Co"], return_label='AtomicMass', dabax_repository=dabax_repository, verbose=0))
+
+        print("Z=27", atomic_symbols_dabax()[27])
+        print("Ge Z=%d" % atomic_number_dabax("Ge"))
+
+        print("Density Si: ", xraylib.ElementDensity(14), element_density_dabax("Si", dabax_repository=dabax_repository,verbose=0))
+
+        for descriptor in ["H2O","Eu2H2.1O1.3","Ca5(PO4)3F"]:
+            print(descriptor, "\n DABAX: ", parse_formula(descriptor), "\nXRAYLIB: ", xraylib.CompoundParser(descriptor))
+
+    if False:
+        #
+        # cross sections
+        #
+        from xoppy_xraylib_util import cross_calc
+
+        # for unit in [0,1,2,3]:
+        unit = 1
+        filenames = ["CrossSec_EPDL97.dat",
+                     "CrossSec_BrennanCowan.dat",
+                     "CrossSec_McMaster.dat",
+                     "CrossSec_NISTxaamdi.dat",
+                     "CrossSec_PE_Scofield.dat",
+                     "CrossSec_StormIsrael.dat",
+                     "CrossSec_XCOM.dat",
+                     ]
+
+        energy = numpy.linspace(10000, 20000, 200)
+        out = []
+        tmpX = cross_calc("Si", energy, calculate=0, unit=unit)
+        out.append(tmpX)
+        for filename in filenames:
+            tmp = cross_calc_dabax("Si", energy, partial='TotalCrossSection', unit=unit,
+                                              filename=filename, dabax_repository=dabax_repository, verbose=0)
+            out.append(tmp)
+
+        legend = ['xraylib']
+        for file in filenames:
+            legend.append(file)
+
+        plot(energy, out[0],
+             energy, out[1],
+             energy, out[2],
+             energy, out[3],
+             energy, out[4],
+             energy, out[5],
+             energy, out[6],
+             energy, out[7],
+             legend=legend,
+             xlog=1,ylog=1)

@@ -80,7 +80,7 @@ F_400 this work: F=563.74, calculated(ref): Fc=551.6, observed(ref): Fo=601.6, |
 F_600 this work: F=38.893, calculated(ref): Fc=44.8, observed(ref): Fo=47.6, |F/Fc|=0.868148
 F_800 this work: F=24.8411, calculated(ref): Fc=19.2, observed(ref): Fo=28.8, |F/Fc|=1.29381
 
-with prototype
+with prototype ** DEFAULT **
 F_200 this work: F=39.2639, calculated(ref): Fc=35.2, observed(ref): Fo=27.6, |F/Fc|=1.11545
 F_400 this work: F=564.591, calculated(ref): Fc=551.6, observed(ref): Fo=601.6, |F/Fc|=1.02355
 F_600 this work: F=39.0252, calculated(ref): Fc=44.8, observed(ref): Fo=47.6, |F/Fc|=0.871098
