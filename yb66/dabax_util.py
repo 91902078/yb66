@@ -809,16 +809,16 @@ def atomic_weights_dabax(descriptor,
 
 def atomic_symbols_dabax():
     return [
-    'Vacuum','H ','He','Li','Be','B ','C ','N ','O ','F ','Ne',
-    'Na','Mg','Al','Si','P ','S ','Cl','Ar','K ','Ca',
-    'Sc','Ti','V ','Cr','Mn','Fe','Co','Ni','Cu','Zn',
-    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y ','Zr',
+    'Vacuum','H','He','Li','Be','B','C','N','O','F','Ne',
+    'Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca',
+    'Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
+    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr',
     'Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn',
-    'Sb','Te','I ','Xe','Cs','Ba','La','Ce','Pr','Nd',
+    'Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd',
     'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb',
-    'Lu','Hf','Ta','W ','Re','Os','Ir','Pt','Au','Hg',
+    'Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg',
     'Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
-    'Pa','U ','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
+    'Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm',
     'Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds',
     'Rg','Uub','Uut','Uuq','Uup','Uuh','Uus','Uuo']
 
@@ -983,7 +983,7 @@ def element_density_dabax(descriptor,
     return atomic_constants_dabax(descriptor, filename=filename, return_label="Density",dabax_repository=dabax_repository, verbose=verbose)
 
 
-def parse_formula(formula): # included now in xraylib, so not used but kept for other possible uses
+def parse_formula(formula, dabax_repository=dabax_repository, verbose=True): # included now in xraylib, so not used but kept for other possible uses
     """
 
     :param formula: a formule (e.g. H2O)
@@ -991,42 +991,85 @@ def parse_formula(formula): # included now in xraylib, so not used but kept for 
 
     """
     import re
-    # tmp = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
-    tmp = re.findall(r'([A-Z][a-z]*)(\d\.?\d?)', formula)
-    # [+-]?([0-9]*[.])?[0-9]+
-    print(">>>>>>>>>>>>>>>>>>>>>", formula, tmp)
-    elements = []
+
+    if '(' in formula:
+
+        if verbose: print("Found parentheses")
+        match = re.search(r'\([\x00-\xFF]*\)(\d\.?\d?)', formula)
+        subformula = match.group(0)
+
+        # subformula = formula[formula.find('('):formula.rfind(')')]
+        # if verbose: print("    >>>>>>> subformula", subformula)
+
+
+        match = re.search(r'\(([^\)]*)\)', subformula)
+        subformula_inside_parentheses = match.group(0)[1:-1]
+        if verbose: print("    >>>>>>> subformula inside parentheses", subformula_inside_parentheses)
+
+
+        match = re.search(r'\)\d\.?\d?', subformula)
+        times = float(match.group(0)[1:])
+        if verbose: print("    >>>>>>> times", times)
+
+
+        dict_old = parse_formula(subformula_inside_parentheses)
+        if verbose: print("    >>>>",dict_old)
+
+        string = ''
+        for i,element in enumerate(dict_old["Elements"]):
+            string += atomic_symbols_dabax()[element] + "%g" % (dict_old["nAtoms"][i] * times)
+
+            if verbose: print("    expanded: ", string, "replaced", formula.replace(subformula, string))
+
+        return parse_formula(formula.replace(subformula, string))
+
+
+
+
+    tmp = re.findall(r'([A-Z][a-z]*)(\d*\.?\d?)', formula)
+
+
     fatomic = []
-    atomic_weight = []
     zetas = []
-    massFractions = []
     for element,str_number in tmp:
         if str_number == '':
             number = 1
         else:
             number = float(str_number)
 
-        elements.append(element)
         fatomic.append(float(number))
         zetas.append(xraylib.SymbolToAtomicNumber(element))
-        atomic_weight.append(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
-        massFractions.append(number*xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
+
+
+    elements = []
+    atomic_weight = []
+    massFractions = []
+
+    for i,z in enumerate(zetas):
+        symbol = atomic_symbols_dabax()[z]
+        atw = atomic_weights_dabax(symbol, dabax_repository=dabax_repository, verbose=verbose)
+        elements.append(z)
+        atomic_weight.append(atw)
+        massFractions.append(fatomic[i]*atw)
 
     mweight = 0.0
     for i in range(len(fatomic)):
         mweight += atomic_weight[i] * fatomic[i]
-    print("Molecular weight: ",mweight)
 
     for i in range(len(massFractions)):
         massFractions[i] /= mweight
 
-    old_dict = {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
-    new_dict = {"nElements": len(elements),
+    # old_dict = {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
+    new_dict = {
+                "nElements": len(elements),
                 "nAtomsAll": float(numpy.array(fatomic).sum()),
                 "Elements":zetas,
                 "massFractions": massFractions,
                 "nAtoms":fatomic,
-                "molarMass": mweight}
+                "molarMass": mweight,
+    }
+
+
 
     return new_dict
 
@@ -1039,8 +1082,8 @@ if __name__ == "__main__":
     #
     # at ESRF use one of these. Otherwise comment (use then the default at the top of this file)
     #
-    dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
-    dabax_repository = "/scisoft/DABAX/data"
+    # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+    # dabax_repository = "/scisoft/DABAX/data"
 
 
 
@@ -1213,8 +1256,11 @@ if __name__ == "__main__":
 
         print("Density Si: ", xraylib.ElementDensity(14), element_density_dabax("Si", dabax_repository=dabax_repository,verbose=0))
 
-        for descriptor in ["H2O","Eu2H2.1O1.3","Ca5(PO4)3F"]:
-            print(descriptor, "\n DABAX: ", parse_formula(descriptor), "\nXRAYLIB: ", xraylib.CompoundParser(descriptor))
+        # TODO: does not work for double parenthesis "Ga2(F(KI))3"
+        for descriptor in ["H2O","Eu2H2.1O1.3","PO4", "Ca5(PO4)3.1F", ]:
+            print("\n",descriptor)
+            print("DABAX: ", parse_formula(descriptor))
+            print("XRAYLIB: ", xraylib.CompoundParser(descriptor))
 
     if False:
         #
