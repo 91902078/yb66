@@ -7,8 +7,6 @@ from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor, inte
 from scipy.optimize import curve_fit
 import scipy.constants as codata
 
-# toangstroms = codata.h * codata.c / codata.e * 1e10
-
 # global default dabax_repository
 dabax_repository="http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"
 
@@ -53,7 +51,7 @@ def get_dabax_file(filename, dabax_repository=dabax_repository, verbose=True):
 #########################
 # crystal
 #########################
-def crystal_parser(filename='Crystals.dat', entry_name='YB66',
+def Crystal_GetCrystal(entry_name='YB66', filename='Crystals.dat',
                    dabax_repository=dabax_repository, verbose=True):
     """
     parse a complex crystal structure file into a dictionary (like xraylib.Crystal_GetCrystal('Si'))
@@ -110,7 +108,6 @@ def crystal_parser(filename='Crystals.dat', entry_name='YB66',
             # not here, this info is not in the dabax file
             # s = symbol_to_from_atomic_number(int(cell_data[0,i]))
             atom.append({
-                         # 'AtomicName': s,
                          'Zatom':int(cell_data[0,i]),
                          'fraction':cell_data[1,i],
                          'x': cell_data[2,i],
@@ -197,9 +194,6 @@ def Crystal_GetCrystalsList(dabax_repository=dabax_repository, verbose=True):
 #          F_H = xraylib.Crystal_F_H_StructureFactor(_crystal, E_keV, h, k, l, _debyeWaller, 1.0)
 #
 
-def Crystal_GetCrystal(descriptor, dabax_repository=dabax_repository):
-    return crystal_parser(filename='Crystals.dat', entry_name=descriptor, dabax_repository=dabax_repository)
-
 def Crystal_dSpacing(cryst, h, k, l):
     return bragg_metrictensor(cryst['a'], cryst['b'], cryst['c'],
                               cryst['alpha'], cryst['beta'], cryst['gamma'],
@@ -217,12 +211,8 @@ def Bragg_angle(cryst, E_keV, h, k, l):
 def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat",
                                   dabax_repository=dabax_repository, verbose=True):
 
-    # if getattr(get_f0_coeffs_from_dabax_file,'sf') is not None:
-    #     sf = getattr(get_f0_coeffs_from_dabax_file,'sf')
-    # else:
     file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
     sf = SpecFile(file1)
-        # get_f0_coeffs_from_dabax_file.sf = sf
 
     flag_found = False
 
@@ -238,18 +228,16 @@ def get_f0_coeffs_from_dabax_file(entry_name="Y3+", filename="f0_InterTables.dat
         return (sf[index_found].data)[:,0]
     else:
         return []
-#setattr(get_f0_coeffs_from_dabax_file,'sf',None)
 
 
 def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", dabax_repository=dabax_repository,
                               verbose=True):
-    symbol = __symbol_to_from_atomic_number(Z)
+    symbol = atomic_symbols_dabax()[Z]
 
     if charge == 0.0:
         return get_f0_coeffs_from_dabax_file(entry_name=symbol, filename=filename, dabax_repository=dabax_repository)
     else:
         # retrieve all entries
-
         filename = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
         sf = SpecFile(filename)
 
@@ -259,7 +247,6 @@ def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", daba
             s1 = sf[index]
             name = s1.scan_header_dict["S"]
             entries.append(name.split('  ')[1])
-        # print(entries)
 
         # identify the entries that match the symbol
         interesting_entries = []
@@ -290,7 +277,6 @@ def f0_with_fractional_charge(Z, charge=0.0, filename="f0_InterTables.dat", daba
 
 
 def calculate_f0_from_f0coeff(f0coeff, ratio):
-
     icentral = len(f0coeff) // 2
     F0 = f0coeff[icentral]
     for i in range(icentral):
@@ -417,9 +403,7 @@ def f1f2_calc_dabax(descriptor,
         print("f1f2_calc: using density: %f g/cm3" % density)
 
     # access spec file
-
     file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
-
     sf = SpecFile(file1)
 
     flag_found = False
@@ -427,7 +411,6 @@ def f1f2_calc_dabax(descriptor,
         s1 = sf[index]
         name = s1.scan_header_dict["S"]
         line = " ".join(name.split())
-        # print(">>>>>>%s  **%s**" % ( line, line.split(' ')[1]))
         if (line.split(' ')[1]) == descriptor:
             flag_found = True
             index_found = index
@@ -637,12 +620,10 @@ def cross_calc_dabax(descriptor,
         raise (Exception("Entry name not found: %s" % descriptor))
 
 
-
     if partial is None:
         F = 'TotalCrossSection'
     else:
         F = partial
-
 
     data = sf[index_found].data
     L = sf.labels(index_found)
@@ -666,9 +647,6 @@ def cross_calc_dabax(descriptor,
 
     photon_energy = data[index_energy, :].copy() * fconv
     cross_section = data[index_column, :].copy()
-
-    # from srxraylib.plot.gol import plot
-    # plot(photon_energy, cross_section, xlog=1, ylog=1)
 
     if interpolation_log:
         cross_section_interpolated = 10 ** numpy.interp(numpy.log10(energy), numpy.log10(photon_energy), numpy.log10(numpy.abs(cross_section)))
@@ -695,46 +673,9 @@ def cross_calc_dabax(descriptor,
 
 
 
-#
-# tools
-#
-
-def __symbol_to_from_atomic_number(ATOM):
-    atoms = [ [1 ,"H"] ,[2 ,"He"] ,[3 ,"Li"] ,[4 ,"Be"] ,[5 ,"B"] ,[6 ,"C"] ,[7 ,"N"] ,[8 ,"O"] ,[9 ,"F"] ,[10 ,"Ne"], \
-                 [11 ,"Na"] ,[12 ,"Mg"] ,[13 ,"Al"] ,[14 ,"Si"] ,[15 ,"P"] ,[16 ,"S"] ,[17 ,"Cl"] ,[18 ,"Ar"] ,[19 ,"K"]
-             ,[20 ,"Ca"], \
-                 [21 ,"Sc"] ,[22 ,"Ti"] ,[23 ,"V"] ,[24 ,"Cr"] ,[25 ,"Mn"] ,[26 ,"Fe"] ,[27 ,"Co"] ,[28 ,"Ni"] ,[29 ,"Cu"]
-             ,[30 ,"Zn"], \
-                 [31 ,"Ga"] ,[32 ,"Ge"] ,[33 ,"As"] ,[34 ,"Se"] ,[35 ,"Br"] ,[36 ,"Kr"] ,[37 ,"Rb"] ,[38 ,"Sr"] ,[39 ,"Y"]
-             ,[40 ,"Zr"], \
-                 [41 ,"Nb"] ,[42 ,"Mo"] ,[43 ,"Tc"] ,[44 ,"Ru"] ,[45 ,"Rh"] ,[46 ,"Pd"] ,[47 ,"Ag"] ,[48 ,"Cd"] ,[49 ,"In"]
-             ,[50 ,"Sn"], \
-                 [51 ,"Sb"] ,[52 ,"Te"] ,[53 ,"I"] ,[54 ,"Xe"] ,[55 ,"Cs"] ,[56 ,"Ba"] ,[57 ,"La"] ,[58 ,"Ce"] ,[59 ,"Pr"]
-             ,[60 ,"Nd"], \
-                 [61 ,"Pm"] ,[62 ,"Sm"] ,[63 ,"Eu"] ,[64 ,"Gd"] ,[65 ,"Tb"] ,[66 ,"Dy"] ,[67 ,"Ho"] ,[68 ,"Er"] ,[69 ,"Tm"]
-             ,[70 ,"Yb"], \
-                 [71 ,"Lu"] ,[72 ,"Hf"] ,[73 ,"Ta"] ,[74 ,"W"] ,[75 ,"Re"] ,[76 ,"Os"] ,[77 ,"Ir"] ,[78 ,"Pt"] ,[79 ,"Au"]
-             ,[80 ,"Hg"], \
-                 [81 ,"Tl"] ,[82 ,"Pb"] ,[83 ,"Bi"] ,[84 ,"Po"] ,[85 ,"At"] ,[86 ,"Rn"] ,[87 ,"Fr"] ,[88 ,"Ra"] ,[89 ,"Ac"]
-             ,[90 ,"Th"], \
-                 [91 ,"Pa"] ,[92 ,"U"] ,[93 ,"Np"] ,[94 ,"Pu"] ,[95 ,"Am"] ,[96 ,"Cm"] ,[97 ,"Bk"] ,[98 ,"Cf"] ,[99 ,"Es"]
-             ,[100 ,"Fm"], \
-                 [101 ,"Md"] ,[102 ,"No"] ,[103 ,"Lr"] ,[104 ,"Rf"] ,[105 ,"Db"] ,[106 ,"Sg"] ,[107 ,"Bh"] 	]
-
-    if isinstance(ATOM ,int):
-        for a in atoms:
-            if a[0] == ATOM:
-                return a[1]
-    for a in atoms:
-        if a[1] == ATOM:
-            return int(a[0])
-
-    raise Exception("Why are you here?", ATOM)
-
-
-#
-#
-#
+######################
+# miscellaneous
+######################
 
 def atomic_weights_dabax(descriptor,
                     filename="AtomicWeights.dat",
@@ -742,16 +683,8 @@ def atomic_weights_dabax(descriptor,
                     verbose=True,
                     ):
     """
-    ; ATOMIC_WEIGHTS
-    ;
-    ; PURPOSE:
     ;       Returns atomic weights from DABAX.
     ;
-    ; CATEGORY:
-    ;       X-Ray optics. DABAX data base.
-    ;
-    ; CALLING SEQUENCE:
-    ;       out = atomic_constants(id,file,return=return)
     ; INPUTS:
     ;       id: an identifier string (i.e. 'Si', '70Ge)
     ;
@@ -762,7 +695,6 @@ def atomic_weights_dabax(descriptor,
     ;
     ;       filename = the DABAX  inout file (default AtomicWeights.dat)
 
-
     """
 
     if isinstance(descriptor,str):
@@ -772,9 +704,7 @@ def atomic_weights_dabax(descriptor,
         descriptor_is_string = 0
 
     # access spec file
-
     file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
-
     sf = SpecFile(file1)
 
     out = []
@@ -787,7 +717,6 @@ def atomic_weights_dabax(descriptor,
             name = s1.scan_header_dict["S"]
             line = " ".join(name.split())
             scan_name = line.split(' ')[1]
-            # print(">>>>>>%s  **%s**" % ( line, scan_name))
             if scan_name[-len(idescriptor):] == idescriptor:
                 flag_found = True
                 index_found.append(index)
@@ -862,29 +791,18 @@ def atomic_constants_dabax(descriptor,
                     return_label=None,
                     ):
     """
-
-    ; NAME:
-    ;       ATOMIC CONSTANTS
-    ;
-    ; PURPOSE:
     ;	Returns atomic constants from DABAX.
     ;
     ; CALLING SEQUENCE:
     ;	out = atomic_constants(id,file,return=return)
     ; INPUTS:
     ;	id: an identifier (or an array of identifiers) to be found in the
-    ;	scan title (i.e. 'Si') or the scan number (i.e. 14)
-    ; OPTIONAL INPUTS:
-    ;	h (input/output) the dabax handle of the file to be used.
-    ;	  If h is undefined or equal to 0, then the returned value is the
-    ;	  dabax handle. If h is defined, then uses this value to point to
-    ;	  the dabax file. This option is useful when calling
-    ;	  atomic_constants sequantially: the first call initiallizes h and
-    ;	  this value is reused (saving time) in the following calls.
+    ;	scan title (i.e. 'Si')
     ;
     ; KEYWORDS:
-    ;	File = the DABAX  inout file (if not set, AtomicConstants.dat is taken)
-    ;	Return = the variable to be returned. You can use either the
+    ;	File = the DABAX  inout file (default: AtomicConstants.dat)
+    ;	return_label and return_item  define the variable to be returned.
+    ;   If return_name is not None, it has priority over retirn_index
     ;		number of the column in the DABAX file, or a text
     ;		identifier (case insensitive) listed below:
     ;		return_label='AtomicRadius'	             or return_item=0
@@ -900,11 +818,8 @@ def atomic_constants_dabax(descriptor,
     ;		return_label='DebyeTemperature'          or return_item=10
     ;		return_label='ThermalConductivity'       or return_item=11
     ;
-    ;
-    ;
     ; OUTPUT:
     ;	out: the value of the selected parameter
-
     ;
     ; EXAMPLES:
     ;	print(atomic_constants('Si',return='AtomicMass'))
@@ -983,63 +898,9 @@ def element_density_dabax(descriptor,
     return atomic_constants_dabax(descriptor, filename=filename, return_label="Density",dabax_repository=dabax_repository, verbose=verbose)
 
 
-def parse_formula(formula, dabax_repository=dabax_repository, verbose=True): # included now in xraylib, so not used but kept for other possible uses
-    """
+def CompoundParser(descriptor, dabax_repository=dabax_repository, verbose=True):
 
-    :param formula: a formule (e.g. H2O)
-    :return: a dictionary with tags: "Symbols","Elements","n","atomicWeight","massFractions","molecularWeight"
-
-    """
-    import re
-
-    if '(' in formula:
-
-        if verbose: print("Found parentheses")
-        match = re.search(r'\([\x00-\xFF]*\)(\d\.?\d?)', formula)
-        subformula = match.group(0)
-
-        # subformula = formula[formula.find('('):formula.rfind(')')]
-        # if verbose: print("    >>>>>>> subformula", subformula)
-
-
-        match = re.search(r'\(([^\)]*)\)', subformula)
-        subformula_inside_parentheses = match.group(0)[1:-1]
-        if verbose: print("    >>>>>>> subformula inside parentheses", subformula_inside_parentheses)
-
-
-        match = re.search(r'\)\d\.?\d?', subformula)
-        times = float(match.group(0)[1:])
-        if verbose: print("    >>>>>>> times", times)
-
-
-        dict_old = parse_formula(subformula_inside_parentheses)
-        if verbose: print("    >>>>",dict_old)
-
-        string = ''
-        for i,element in enumerate(dict_old["Elements"]):
-            string += atomic_symbols_dabax()[element] + "%g" % (dict_old["nAtoms"][i] * times)
-
-            if verbose: print("    expanded: ", string, "replaced", formula.replace(subformula, string))
-
-        return parse_formula(formula.replace(subformula, string))
-
-
-
-
-    tmp = re.findall(r'([A-Z][a-z]*)(\d*\.?\d?)', formula)
-
-
-    fatomic = []
-    zetas = []
-    for element,str_number in tmp:
-        if str_number == '':
-            number = 1
-        else:
-            number = float(str_number)
-
-        fatomic.append(float(number))
-        zetas.append(xraylib.SymbolToAtomicNumber(element))
-
+    zetas, fatomic = parse_formula(formula=descriptor, verbose=verbose)
 
     elements = []
     atomic_weight = []
@@ -1059,7 +920,6 @@ def parse_formula(formula, dabax_repository=dabax_repository, verbose=True): # i
     for i in range(len(massFractions)):
         massFractions[i] /= mweight
 
-    # old_dict = {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
     new_dict = {
                 "nElements": len(elements),
                 "nAtomsAll": float(numpy.array(fatomic).sum()),
@@ -1069,38 +929,86 @@ def parse_formula(formula, dabax_repository=dabax_repository, verbose=True): # i
                 "molarMass": mweight,
     }
 
-
-
     return new_dict
+
+def parse_formula(formula, verbose=True):
+
+    import re
+    if formula.count('(') == 0:
+        pass
+    elif formula.count('(') == 1:
+        if verbose: print("Found parentheses")
+        match = re.search(r'\([\x00-\xFF]*\)(\d\.?\d?)', formula)
+        subformula = match.group(0)
+
+        if verbose: print("    >>>>>>> subformula", subformula)
+
+        match = re.search(r'\(([^\)]*)\)', subformula)
+        subformula_inside_parentheses = match.group(0)[1:-1]
+        if verbose: print("    >>>>>>> subformula inside parentheses", subformula_inside_parentheses)
+
+
+        match = re.search(r'\)\d\.?\d?', subformula)
+        times = float(match.group(0)[1:])
+        if verbose: print("    >>>>>>> times", times)
+
+
+        zetas, fatomic = parse_formula(subformula_inside_parentheses, verbose=verbose)
+        if verbose: print("    >>>> zetas, fatomic:",zetas, fatomic)
+        string = ''
+        for i,element in enumerate(zetas):
+            string += atomic_symbols_dabax()[element] + "%g" % (fatomic[i] * times)
+
+            if verbose: print("    expanded: ", string, "replaced", formula.replace(subformula, string))
+
+        return parse_formula(formula.replace(subformula, string), verbose=verbose)
+    else:
+        raise NotImplementedError("wrong formula %s: multiple parentheses not implemented" % formula )
+
+
+
+    tmp = re.findall(r'([A-Z][a-z]*)(\d*\.?\d?)', formula)
+
+
+    fatomic = []
+    zetas = []
+    for element,str_number in tmp:
+        if str_number == '':
+            number = 1
+        else:
+            number = float(str_number)
+
+        fatomic.append(float(number))
+        zetas.append(atomic_number_dabax(element))
+
+    return zetas, fatomic
 
 
 if __name__ == "__main__":
-
     import xraylib # for comparisons
     from srxraylib.plot.gol import plot
 
-    #
-    # at ESRF use one of these. Otherwise comment (use then the default at the top of this file)
-    #
-    # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
-    # dabax_repository = "/scisoft/DABAX/data"
-
-
-
+    # redefine the default server at ESRF because default server name is different outside and inside ESRF
+    import socket
+    if socket.getfqdn().find("esrf") >= 0:
+        # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+        dabax_repository = "/scisoft/DABAX/data"
+    else:
+        dabax_repository = "http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"
 
     #
     # crystal tests
     #
-    if False:
+    if True:
         print(get_dabax_file("Crystals.dat", dabax_repository=dabax_repository, verbose=0))
 
-        print(get_f0_coeffs_from_dabax_file(entry_name="Y3+",
+        print(get_f0_coeffs_from_dabax_file("Y3+",
                                             filename="f0_InterTables.dat",
                                             dabax_repository=dabax_repository))
 
         print(Crystal_GetCrystalsList(dabax_repository=dabax_repository))
 
-        yb = crystal_parser(filename='Crystals.dat', entry_name='YB66', dabax_repository=dabax_repository)
+        yb = Crystal_GetCrystal('YB66', filename='Crystals.dat', dabax_repository=dabax_repository)
 
         si = Crystal_GetCrystal("Si", dabax_repository=dabax_repository)
         print("Si 111 d-spacing: ", Crystal_dSpacing(si,1,1,1))
@@ -1110,11 +1018,11 @@ if __name__ == "__main__":
     # crystal vs xraylib tests
     #
 
-    if False:
-        print(crystal_parser(filename='Crystals.dat', entry_name='YB66', dabax_repository=dabax_repository))
+    if True:
+        print(Crystal_GetCrystal(entry_name='YB66', filename='Crystals.dat', dabax_repository=dabax_repository))
 
         # compare with xraylib
-        xdabax = crystal_parser(filename='Crystals.dat', entry_name='Si', dabax_repository=dabax_repository)
+        xdabax = Crystal_GetCrystal(entry_name='Si', filename='Crystals.dat', dabax_repository=dabax_repository)
 
         xxraylib = xraylib.Crystal_GetCrystal('Si')
 
@@ -1130,7 +1038,7 @@ if __name__ == "__main__":
     #
     # f0
     #
-    if False:
+    if True:
         #
         # test f0 data for B3+
         #
@@ -1155,8 +1063,7 @@ if __name__ == "__main__":
     #
     # f0 another test
     #
-    if False:
-        from dabax_util import calculate_f0_from_f0coeff, f0_with_fractional_charge
+    if True:
         #
         # test f0 data for B3+
         #
@@ -1186,8 +1093,8 @@ if __name__ == "__main__":
     # f1f2 tests
     #
 
-    if False:
-        from xoppy_xraylib_util import f1f2_calc
+    if True:
+        from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc
 
         files_f1f2 = [
             "f1f2_asf_Kissel.dat",
@@ -1257,18 +1164,17 @@ if __name__ == "__main__":
         print("Density Si: ", xraylib.ElementDensity(14), element_density_dabax("Si", dabax_repository=dabax_repository,verbose=0))
 
         # TODO: does not work for double parenthesis "Ga2(F(KI))3"
-        for descriptor in ["H2O","Eu2H2.1O1.3","PO4", "Ca5(PO4)3.1F", ]:
-            print("\n",descriptor)
-            print("DABAX: ", parse_formula(descriptor))
+        for descriptor in ["H2O","Eu2H2.1O1.3","PO4", "Ca5(PO4)3.1F"]:
+            print("\n",descriptor, dabax_repository)
+            print("DABAX: ", CompoundParser(descriptor, dabax_repository=dabax_repository, verbose=0))
             print("XRAYLIB: ", xraylib.CompoundParser(descriptor))
 
-    if False:
+    if True:
         #
         # cross sections
         #
-        from xoppy_xraylib_util import cross_calc
+        from orangecontrib.xoppy.util.xoppy_xraylib_util import cross_calc
 
-        # for unit in [0,1,2,3]:
         unit = 1
         filenames = ["CrossSec_EPDL97.dat",
                      "CrossSec_BrennanCowan.dat",

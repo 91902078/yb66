@@ -41,8 +41,7 @@ A new independent python code must be prepared to create the new preprocessor fi
 
 
 The SHADOW kernel will accept this new preprocessor file. Eventually, the fortran kernel would accept:
-- The current preprocessor file
-- The XOPPY/CRYSTAL preprocessor file xcrystal.bra
-- The new preprocessor
+- The existing preprocessor file (not valid for new and complex crystals as YB66)
+- The new preprocessor created with bragg_calc2 and also used in XOPPY/CRYSTAL and FH [STILL TO DO]
 
 Then, we will add yb66 in the list of crystals of the bragg preprocessor. For that, a "quick-and dirty" way is to add it in the crystal list, and process it with the new python routines.  It is not very clean but it will make the job until a complete restructuration of the SHADOW crystal code in shadow4. A similar "patch" is already in use for Graphite.

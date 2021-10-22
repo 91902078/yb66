@@ -1,27 +1,18 @@
 import numpy
-from dabax_util import calculate_f0_from_f0coeff, f0_with_fractional_charge
-
+import os
 import scipy.constants as codata
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_xop
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_metrictensor
-import re
 
-from dabax_util import crystal_parser
-from dabax_util import __symbol_to_from_atomic_number, f0_with_fractional_charge
+from dabax_util import calculate_f0_from_f0coeff, f0_with_fractional_charge
+from dabax_util import Crystal_GetCrystal
+from dabax_util import atomic_symbols_dabax # __symbol_to_from_atomic_number
+from dabax_util import f0_with_fractional_charge
+from dabax_util import CompoundParser
 
-# to be removed...
-from orangecontrib.xoppy.util.xoppy_xraylib_util import parse_formula
+# to be removed...  TODO: move the f1 f2 routines from xraylib to dabax.
 import xraylib
-
-from xoppy_xraylib_util import bragg_calc, crystal_fh
-import os
-
-#-------------------------------------------------------------------------
-#-------------------------------------------------------------------------
-#-------------------------------------------------------------------------
-toangstroms = codata.h * codata.c / codata.e * 1e10
-dabax_repository = "/scisoft/DABAX/data"  # "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
 
 
 #################################################################################
@@ -35,6 +26,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                 sourceF0=2,    # 0=xraylib, 1=dabax, 2=auto
                 do_not_prototype=0, # 0=use site groups (recommended), 1=use all individual sites
                 verbose=True,
+                dabax_repository="",
                 ):
     """
     Preprocessor for Structure Factor (FH) calculations. It calculates the basic ingredients of FH.
@@ -70,7 +62,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         if cryst is None:
             raise Exception("Crystal descriptor %s not found in xraylib" % descriptor)
     elif sourceCryst == 1:
-        cryst = crystal_parser(entry_name=descriptor, dabax_repository=dabax_repository, verbose=verbose)
+        cryst = Crystal_GetCrystal(entry_name=descriptor, dabax_repository=dabax_repository, verbose=verbose)
     elif sourceCryst == 2:
         try:
             cryst = xraylib.Crystal_GetCrystal(descriptor)
@@ -79,7 +71,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
             sourceCryst = 0
         except:
             try:
-                cryst = crystal_parser(entry_name=descriptor, dabax_repository=dabax_repository, verbose=verbose)
+                cryst = Crystal_GetCrystal(entry_name=descriptor, dabax_repository=dabax_repository, verbose=verbose)
                 sourceCryst = 1
             except:
                 raise Exception("Crystal descriptor %s not found in xraylib nor in dabax" % descriptor)
@@ -130,7 +122,7 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     # AtomicNames contains a string with the atomic symbol with charge appended (if not zero)
     list_AtomicName = []
     for i in range(len(atom)):
-        s = __symbol_to_from_atomic_number(atom[i]['Zatom'])
+        s = atomic_symbols_dabax()[atom[i]['Zatom']] #__symbol_to_from_atomic_number(atom[i]['Zatom'])
         if sourceCryst == 1: # charge is not available in xraylib
             if atom[i]['charge'] != 0.0:  # if charge is 0, s is symbol only, not B0, etc
                 s = s + f'%+.6g' % atom[i]['charge']
@@ -162,7 +154,6 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                     unique_indexes_with_fraction.append(i)
 
     # do not prototype....
-
     if do_not_prototype:
         unique_indexes_with_fraction = numpy.arange(number_of_atoms)
     output_dictionary["unique_indexes_with_fraction"] = unique_indexes_with_fraction  # different with diff_pat for complex crystal
@@ -170,7 +161,6 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     #
     # get f0 coefficients
     #
-
     if True:
         f0coeffs = []
         if sourceF0 == 0:
@@ -209,7 +199,6 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
             else: # use xraylib
                 for i in unique_indexes_with_fraction:
                     f0coeffs.append(f0_xop(atom[i]['Zatom']))
-
 
 
     nbatom_new = (len(unique_indexes_with_fraction))
@@ -422,6 +411,7 @@ def f0_calc_dabax(
     GRIDN,
     FILE_NAME="",
     charge=0.0,
+    dabax_repository="",
     ):
 
     qscale = numpy.linspace(GRIDSTART, GRIDEND, GRIDN)
@@ -437,9 +427,9 @@ def f0_calc_dabax(
                                           dabax_repository=dabax_repository)
         f0 = calculate_f0_from_f0coeff(coeffs, qscale)
     elif MAT_FLAG == 1: # formula
-        tmp = parse_formula(DESCRIPTOR)
+        tmp = CompoundParser(DESCRIPTOR, dabax_repository=dabax_repository)
         zetas = tmp["Elements"]
-        multiplicity = tmp["n"]
+        multiplicity = tmp["nAtoms"]
         for j,jz in enumerate(zetas):
             coeffs = f0_with_fractional_charge(jz, charge=charge,
                                                filename="f0_InterTables.dat",
@@ -505,7 +495,7 @@ def check_temperature_factor():
     # anisotropy
     #
 
-    cryst = crystal_parser(filename='Crystals.dat', entry_name='YB66', dabax_repository=dabax_repository)
+    cryst = Crystal_GetCrystal(filename='Crystals.dat', entry_name='YB66', dabax_repository=dabax_repository)
 
 
     if 'Aniso' in cryst.keys() and cryst['Aniso'][0]['start']>0:    #most crystals have no Anisotropic input
@@ -540,10 +530,13 @@ def check_temperature_factor():
     print("TFac: ", TFac, cryst["n_atom"], len(TFac[0]), len(TFac[1]))
 
 
-
-
 def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
-                           do_assert=True, models=[1,1,1]):
+                           do_assert=True, models=[1,1,1],
+                           dabax_repository=""):
+
+    from xoppy_xraylib_util import bragg_calc, crystal_fh
+
+
     os.system("rm -f xcrystal.bra xcrystal_0.bra xcrystal_1.bra xcrystal_2.bra")
     #
     # installed xoppy
@@ -579,7 +572,7 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
         dic2a = bragg_calc2(descriptor=descriptor, hh=hh, kk=kk, ll=ll, temper=1.0,
                             emin=energy-100, emax=energy+100, estep=5.0, ANISO_SEL=ANISO_SEL,
                             do_not_prototype=do_not_prototype,
-                            fileout="xcrystal.bra", verbose=False)
+                            fileout="xcrystal.bra", verbose=False, dabax_repository=dabax_repository)
         os.system("cp xcrystal.bra xcrystal_2.bra")
 
         dic2b = crystal_fh(dic2a, energy)
@@ -639,40 +632,49 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
 
 if __name__ == "__main__":
     import os
+
+
+    # redefine the default server at ESRF because default server name is different outside and inside ESRF
+    import socket
+    if socket.getfqdn().find("esrf") >= 0:
+        # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+        dabax_repository = "/scisoft/DABAX/data"
+
+
     #
     # crystal
     #
-    # from xoppy_xraylib_util import bragg_calc, crystal_fh
     from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc as bragg_calc_old
-    from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh as crystal_fh_old
 
     # test temperature
     # check_temperature_factor()
 
     # test Si
-    check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000)
+    check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
+                           dabax_repository=dabax_repository)
 
     # test Muscovite
-    check_structure_factor(descriptor="Muscovite", hh=1, kk=1, ll=1, energy=8000, do_assert=1, models=[0,1,1])
+    check_structure_factor(descriptor="Muscovite", hh=1, kk=1, ll=1, energy=8000, do_assert=1, models=[0,1,1],
+                           dabax_repository=dabax_repository)
 
     # Test YB66
-    check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1])
+    check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1],
+                           dabax_repository=dabax_repository)
 
     #
     # f0
     #
-
-    if False:
+    if True:
         from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_calc
 
         Si_xrl = f0_calc      (0, "Si", 0, 6, 100)
-        Si_dbx = f0_calc_dabax(0, "Si", 0, 6, 100)
+        Si_dbx = f0_calc_dabax(0, "Si", 0, 6, 100, dabax_repository=dabax_repository)
 
         H2O_xrl = f0_calc      (1, "H2O", 0, 6, 100)
-        H2O_dbx = f0_calc_dabax(1, "H2O", 0, 6, 100)
+        H2O_dbx = f0_calc_dabax(1, "H2O", 0, 6, 100, dabax_repository=dabax_repository)
 
         H2O_xrl = f0_calc      (2, "Water, Liquid", 0, 6, 100)
-        H2O_dbx = f0_calc_dabax(2, "Water, Liquid", 0, 6, 100)
+        H2O_dbx = f0_calc_dabax(2, "Water, Liquid", 0, 6, 100, dabax_repository=dabax_repository)
 
 
         from srxraylib.plot.gol import plot

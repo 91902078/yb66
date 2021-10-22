@@ -4,8 +4,6 @@ from xoppy_dabax_util import f0_calc_dabax
 import matplotlib.pylab as plt
 from srxraylib.plot.gol import plot
 
-from dabax_util import crystal_parser
-
 
 import numpy
 
@@ -13,7 +11,7 @@ if __name__ == "__main__":
     dabax_repository = "/scisoft/DABAX/data"  # "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
     do_plot = 1
 
-    if False:
+    if True:
         #
         # f0
         #
