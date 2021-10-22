@@ -99,42 +99,42 @@ def descriptor_kind_index(descriptor):
         pass
     return out
 
-
-def parse_formula(formula): # included now in xraylib, so not used but kept for other possible uses
-    """
-
-    :param formula: a formule (e.g. H2O)
-    :return: a dictionary with tags: "Symbols","Elements","n","atomicWeight","massFractions","molecularWeight"
-
-    """
-    import re
-    tmp = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
-    elements = []
-    fatomic = []
-    atomic_weight = []
-    zetas = []
-    massFractions = []
-    for element,str_number in tmp:
-        if str_number == '':
-            number = 1
-        else:
-            number = int(str_number)
-
-        elements.append(element)
-        fatomic.append(number)
-        zetas.append(xraylib.SymbolToAtomicNumber(element))
-        atomic_weight.append(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
-        massFractions.append(number*xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
-
-    mweight = 0.0
-    for i in range(len(fatomic)):
-        mweight += atomic_weight[i] * fatomic[i]
-    print("Molecular weight: ",mweight)
-
-    for i in range(len(massFractions)):
-        massFractions[i] /= mweight
-
-    return {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
+# moved to dabax
+# def parse_formula(formula): # included now in xraylib, so not used but kept for other possible uses
+#     """
+#
+#     :param formula: a formule (e.g. H2O)
+#     :return: a dictionary with tags: "Symbols","Elements","n","atomicWeight","massFractions","molecularWeight"
+#
+#     """
+#     import re
+#     tmp = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
+#     elements = []
+#     fatomic = []
+#     atomic_weight = []
+#     zetas = []
+#     massFractions = []
+#     for element,str_number in tmp:
+#         if str_number == '':
+#             number = 1
+#         else:
+#             number = int(str_number)
+#
+#         elements.append(element)
+#         fatomic.append(number)
+#         zetas.append(xraylib.SymbolToAtomicNumber(element))
+#         atomic_weight.append(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
+#         massFractions.append(number*xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
+#
+#     mweight = 0.0
+#     for i in range(len(fatomic)):
+#         mweight += atomic_weight[i] * fatomic[i]
+#     print("Molecular weight: ",mweight)
+#
+#     for i in range(len(massFractions)):
+#         massFractions[i] /= mweight
+#
+#     return {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
 
 #
 # bind some xraylib functions to allow NIST compound as inputs
