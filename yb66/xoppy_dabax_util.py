@@ -178,8 +178,18 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                     f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
                                                               dabax_repository=dabax_repository, verbose=verbose))
             else: # use xraylib
-                for i in unique_indexes_with_fraction:
-                    f0coeffs.append(f0_xop(atom[i]['Zatom']))
+                if 'AtomicName' not in atom[0].keys():
+                    for i in unique_indexes_with_fraction:  #normal case come in here
+                        f0coeffs.append(f0_xop(atom[i]['Zatom']))
+                else:   #for case with like 'Y3+' entries in f0_xop
+                    import re
+                    for i in unique_indexes_with_fraction:
+                        x = atom[i]['AtomicName']
+                        tmp_x = re.search('(^[a-zA-Z]*)',x)
+                        if tmp_x.group(0) == x:
+                            f0coeffs.append(f0_xop(atom[i]['Zatom']))  #neutral atom
+                        else:    
+                            f0coeffs.append(f0_xop(0,AtomicName=x))    #charged atom
 
     else:
         libmethod=1 # 0=dabax, 1=combined(Dabax for charge!=0, xraylib for charge=0)
@@ -571,7 +581,7 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
     if models[2]:
         dic2a = bragg_calc2(descriptor=descriptor, hh=hh, kk=kk, ll=ll, temper=1.0,
                             emin=energy-100, emax=energy+100, estep=5.0, ANISO_SEL=ANISO_SEL,
-                            do_not_prototype=do_not_prototype,
+                            do_not_prototype=do_not_prototype,sourceCryst=2,
                             fileout="xcrystal.bra", verbose=False, dabax_repository=dabax_repository)
         os.system("cp xcrystal.bra xcrystal_2.bra")
 
@@ -623,10 +633,17 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
                 assert (numpy.abs(dic2b['FH_BAR'] - (565.7225232608029 + 35.96688817044359j))  < 1e-2)
                 assert (numpy.abs(dic2b['F_0'] -    (8846.406209552279 + 56.12593721027547j))  < 0.3)
             else:
-                assert (numpy.abs(dic2b['STRUCT'] -  (563.4529619470779+35.8256810337139j))  < 1e-2)
-                assert (numpy.abs(dic2b['FH'] -      (563.4529619470779+35.82568103371383j)) < 1e-2)
-                assert (numpy.abs(dic2b['FH_BAR'] -  (563.4529619470779+35.82568103371397j))  < 1e-2)
-                assert (numpy.abs(dic2b['F_0'] -     (8848.638071350899+56.12049122626621j))  < 0.3)
+                use_Atomic_name = True
+                if not use_Atomic_name:
+                    assert (numpy.abs(dic2b['STRUCT'] -  (563.4529619470779+35.8256810337139j))  < 1e-2)
+                    assert (numpy.abs(dic2b['FH'] -      (563.4529619470779+35.82568103371383j)) < 1e-2)
+                    assert (numpy.abs(dic2b['FH_BAR'] -  (563.4529619470779+35.82568103371397j))  < 1e-2)
+                    assert (numpy.abs(dic2b['F_0'] -     (8848.638071350899+56.12049122626621j))  < 0.3)
+                else:
+                    assert (numpy.abs(dic2b['STRUCT'] -  (563.3428927313457+35.82567872885292j))  < 1e-2)
+                    assert (numpy.abs(dic2b['FH'] -      (563.3428924224959+35.82568727860286j)) < 1e-2)
+                    assert (numpy.abs(dic2b['FH_BAR'] -  (563.3428930401956+35.825670179102985j))  < 1e-2)
+                    assert (numpy.abs(dic2b['F_0'] -     (8848.637396764192+56.12049119444192j))  < 0.3)
 
     return dic2b['STRUCT']
 
@@ -636,6 +653,7 @@ if __name__ == "__main__":
 
     # redefine the default server at ESRF because default server name is different outside and inside ESRF
     import socket
+    dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
     if socket.getfqdn().find("esrf") >= 0:
         # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
         dabax_repository = "/scisoft/DABAX/data"

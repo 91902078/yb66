@@ -64,7 +64,7 @@ def Crystal_GetCrystal(entry_name='YB66', filename='Crystals.dat',
     file1 = get_dabax_file(filename, dabax_repository=dabax_repository, verbose=verbose)
 
     sf = SpecFile(file1)
-
+    
     flag_found = False
 
     for index in range(len(sf)):

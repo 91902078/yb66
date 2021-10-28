@@ -1546,11 +1546,13 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
 
         F0 = numpy.zeros(nbatom)
         for j in range(nbatom):
-            icentral = int(f0coeff.shape[1]/2)
-            F0[j] = f0coeff[j,icentral]
+            #icentral = int(f0coeff.shape[1]/2)
+            #F0[j] = f0coeff[j,icentral]
+            icentral = int(len(f0coeff[j])/2)
+            F0[j] = f0coeff[j][icentral]
             for i in range(icentral):
-                F0[j] += f0coeff[j,i] * numpy.exp(-1.0*f0coeff[j,i+icentral+1]*ratio**2)
-
+                #F0[j] += f0coeff[j,i] * numpy.exp(-1.0*f0coeff[j,i+icentral+1]*ratio**2)
+                F0[j] += f0coeff[j][i] * numpy.exp(-1.0*f0coeff[j][i+icentral+1]*ratio**2)
 
         # ;C
         # ;C Interpolate for the atomic scattering factor.
