@@ -582,7 +582,7 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
         # from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh
         dic2a = bragg_calc2(descriptor=descriptor, hh=hh, kk=kk, ll=ll, temper=1.0,
                             emin=energy-100, emax=energy+100, estep=5.0, ANISO_SEL=ANISO_SEL,fileout="xcrystal.bra",
-                            do_not_prototype=do_not_prototype,sourceCryst=2,
+                            do_not_prototype=do_not_prototype,sourceCryst=1,
                             verbose=False, dabax_repository=dabax_repository)
         os.system("cp xcrystal.bra xcrystal_2.bra")
 
