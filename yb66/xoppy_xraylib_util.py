@@ -1527,6 +1527,7 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
 
 
     itheta = numpy.zeros_like(phot_in)
+    F000 = numpy.zeros(nbatom)
     for i,phot in enumerate(phot_in):
 
         if theta is None:
@@ -1550,9 +1551,11 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
             #F0[j] = f0coeff[j,icentral]
             icentral = int(len(f0coeff[j])/2)
             F0[j] = f0coeff[j][icentral]
+            F000[j] = F0[j]
             for i in range(icentral):
                 #F0[j] += f0coeff[j,i] * numpy.exp(-1.0*f0coeff[j,i+icentral+1]*ratio**2)
                 F0[j] += f0coeff[j][i] * numpy.exp(-1.0*f0coeff[j][i+icentral+1]*ratio**2)
+                F000[j] += f0coeff[j][i]  #actual number of electrons carried by each atom, X.J. Yu, slsyxj@nus.edu.sg
 
         # ;C
         # ;C Interpolate for the atomic scattering factor.
@@ -1590,15 +1593,16 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
 
         TEMPER_AVE = 1.0
         for j in range(nbatom):
-            FH  += fraction[j] * (G[j] *   F[j] * 1.0)
-            FHr += fraction[j] * (G[j] * (F0[j] + F1[j])* 1.0)
-            FHi += fraction[j] * (G[j] *  F2[j] * 1.0)
-            F_0 += fraction[j] * (G_0[j] * ( atnum[j] + F1[j] + 1j * F2[j] ) * 1.0)
+            FH  += fraction[j] * (G[j] *   F[j] * 1.0) * temper[j]
+            FHr += fraction[j] * (G[j] * (F0[j] + F1[j])* 1.0) * temper[j]
+            FHi += fraction[j] * (G[j] *  F2[j] * 1.0) * temper[j]
+            FN = F000[j] + F1[j] + 1j * F2[j]
+            F_0 += fraction[j] * (G_0[j] *  FN  * 1.0)
             TEMPER_AVE *= (temper[j])**(G_0[j]/(G_0.sum()))
 
-            FH_BAR  += fraction[j] * ((G_BAR[j] * F[j] * 1.0))
-            FH_BARr += fraction[j] * ((G_BAR[j] * (F0[j]  + F1[j]) *1.0))
-            FH_BARi += fraction[j] * ((G_BAR[j] *  F2[j] * 1.0))
+            FH_BAR  += fraction[j] * ((G_BAR[j] * F[j] * 1.0)) * temper[j]
+            FH_BARr += fraction[j] * ((G_BAR[j] * (F0[j]  + F1[j]) *1.0)) * temper[j]
+            FH_BARi += fraction[j] * ((G_BAR[j] *  F2[j] * 1.0)) * temper[j]
             # print("TEMPER_AVE: ",TEMPER_AVE)
 
 
@@ -1607,12 +1611,12 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
         # ;C
 
 
-        FH      *= TEMPER_AVE
-        FHr     *= TEMPER_AVE
-        FHi     *= TEMPER_AVE
-        FH_BAR  *= TEMPER_AVE
-        FH_BARr *= TEMPER_AVE
-        FH_BARi *= TEMPER_AVE
+        # FH      *= TEMPER_AVE
+        # FHr     *= TEMPER_AVE
+        # FHi     *= TEMPER_AVE
+        # FH_BAR  *= TEMPER_AVE
+        # FH_BARr *= TEMPER_AVE
+        # FH_BARi *= TEMPER_AVE
 
         STRUCT = numpy.sqrt(FH * FH_BAR)
 

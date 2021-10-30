@@ -154,10 +154,9 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
                     unique_indexes_with_fraction.append(i)
 
     # do not prototype....
-    if do_not_prototype:
-        unique_indexes_with_fraction = numpy.arange(number_of_atoms)
+    if do_not_prototype: 
+        unique_indexes_with_fraction = numpy.arange(number_of_atoms)  # different with diff_pat for complex crystal
     output_dictionary["unique_indexes_with_fraction"] = unique_indexes_with_fraction  # different with diff_pat for complex crystal
-
     #
     # get f0 coefficients
     #
@@ -572,17 +571,19 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
     # Xiaojiang
     #
     if descriptor == "YB66":
-        ANISO_SEL = 2
-        do_not_prototype = 0
+        ANISO_SEL = 1   #  0: old Temper 1:Anisotropic  2: isotropic
+        do_not_prototype = 1
     else:
         ANISO_SEL = 0
         do_not_prototype = 0
 
     if models[2]:
+        # from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc as bragg_calc2
+        # from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh
         dic2a = bragg_calc2(descriptor=descriptor, hh=hh, kk=kk, ll=ll, temper=1.0,
-                            emin=energy-100, emax=energy+100, estep=5.0, ANISO_SEL=ANISO_SEL,
+                            emin=energy-100, emax=energy+100, estep=5.0, ANISO_SEL=ANISO_SEL,fileout="xcrystal.bra",
                             do_not_prototype=do_not_prototype,sourceCryst=2,
-                            fileout="xcrystal.bra", verbose=False, dabax_repository=dabax_repository)
+                            verbose=False, dabax_repository=dabax_repository)
         os.system("cp xcrystal.bra xcrystal_2.bra")
 
         dic2b = crystal_fh(dic2a, energy)
@@ -640,10 +641,10 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
                     assert (numpy.abs(dic2b['FH_BAR'] -  (563.4529619470779+35.82568103371397j))  < 1e-2)
                     assert (numpy.abs(dic2b['F_0'] -     (8848.638071350899+56.12049122626621j))  < 0.3)
                 else:
-                    assert (numpy.abs(dic2b['STRUCT'] -  (563.3428927313457+35.82567872885292j))  < 1e-2)
-                    assert (numpy.abs(dic2b['FH'] -      (563.3428924224959+35.82568727860286j)) < 1e-2)
-                    assert (numpy.abs(dic2b['FH_BAR'] -  (563.3428930401956+35.825670179102985j))  < 1e-2)
-                    assert (numpy.abs(dic2b['F_0'] -     (8848.637396764192+56.12049119444192j))  < 0.3)
+                    assert (numpy.abs(dic2b['STRUCT'] -  (565.6124450891418+35.96361291284668j))  < 1e-2)
+                    assert (numpy.abs(dic2b['FH'] -      (565.612444779105+35.96362149427959j)) < 1e-2)
+                    assert (numpy.abs(dic2b['FH_BAR'] -  (565.6124453991785+35.96360433141376j))  < 1e-2)
+                    assert (numpy.abs(dic2b['F_0'] -     (8842.035225507192+56.120491194441975j))  < 0.3)
 
     return dic2b['STRUCT']
 
