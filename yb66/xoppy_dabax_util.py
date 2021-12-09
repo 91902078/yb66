@@ -10,7 +10,7 @@ from dabax_util import Crystal_GetCrystal
 from dabax_util import atomic_symbols_dabax # __symbol_to_from_atomic_number
 from dabax_util import f0_with_fractional_charge
 from dabax_util import CompoundParser
-
+from xoppy_xraylib_util import load_bragg_preprocessor_file
 # to be removed...  TODO: move the f1 f2 routines from xraylib to dabax.
 import xraylib
 
@@ -105,141 +105,19 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     output_dictionary["dspacing"] = dspacing
 
     atom = cryst['atom']
+    number_of_atoms = len(atom)
     list_Zatom = [atom[i]['Zatom'] for i in range(len(atom))]
-    number_of_atoms = len(list_Zatom)
-    list_fraction = [atom[i]['fraction'] for i in range(len(atom))]
+
+    list_fraction = [atom[i]['fraction'] for i in range(number_of_atoms)]
     try:
-        list_charge = [atom[i]['charge'] for i in range(len(atom))]
+        list_charge = [atom[i]['charge'] for i in range(number_of_atoms)]
     except:
         list_charge = [0.0] * number_of_atoms
-    list_x = [atom[i]['x'] for i in range(len(atom))]
-    list_y = [atom[i]['y'] for i in range(len(atom))]
-    list_z = [atom[i]['z'] for i in range(len(atom))]
+    list_x = [atom[i]['x'] for i in range(number_of_atoms)]
+    list_y = [atom[i]['y'] for i in range(number_of_atoms)]
+    list_z = [atom[i]['z'] for i in range(number_of_atoms)]
 
-    #
-    # calculate indices of prototypical atoms (the different atomic sites)
-    #
-    # AtomicNames contains a string with the atomic symbol with charge appended (if not zero)
-    list_AtomicName = []
-    for i in range(len(atom)):
-        s = atomic_symbols_dabax()[atom[i]['Zatom']] #__symbol_to_from_atomic_number(atom[i]['Zatom'])
-        if sourceCryst == 1: # charge is not available in xraylib
-            if atom[i]['charge'] != 0.0:  # if charge is 0, s is symbol only, not B0, etc
-                s = s + f'%+.6g' % atom[i]['charge']
-        list_AtomicName.append(s)
-
-    # calculate indices of unique_AtomicName's (including charge) sorted by Z
-    unique_indexes1 = numpy.unique(list_AtomicName, return_index=True)[1]
-    # sort by Z
-    unique_Zatom1 = [list_Zatom[i] for i in unique_indexes1]
-
-    ii = numpy.argsort(unique_Zatom1)
-    unique_indexes = unique_indexes1[ii]
-
-    # calculate indices of sites (using unique_AtomicName's (including charge) and fraction)
-    unique_indexes_with_fraction = []
-    for k in unique_indexes:
-        unique_indexes_with_fraction.append(k)
-
-        itmp = [k]
-        ifraction = [list_fraction[k]]
-
-        for i in range(len(list_AtomicName)):
-            if list_AtomicName[i] == list_AtomicName[k]:
-                if list_fraction[i] in ifraction:
-                    pass
-                else:
-                    itmp.append([i])
-                    ifraction.append(list_fraction[i])
-                    unique_indexes_with_fraction.append(i)
-
-    # do not prototype....
-    if do_not_prototype: 
-        unique_indexes_with_fraction = numpy.arange(number_of_atoms)  # different with diff_pat for complex crystal
-    output_dictionary["unique_indexes_with_fraction"] = unique_indexes_with_fraction  # different with diff_pat for complex crystal
-    #
-    # get f0 coefficients
-    #
-    if True:
-        f0coeffs = []
-        if sourceF0 == 0:
-            for i in unique_indexes_with_fraction:
-                f0coeffs.append(f0_xop(atom[i]['Zatom']))
-        elif sourceF0 == 1:
-            for i in unique_indexes_with_fraction:
-                    f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                            dabax_repository=dabax_repository, verbose=verbose) )
-        elif sourceF0 == 2:
-            total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
-
-            if total_charge_flag != 0: # Use dabax
-                for i in unique_indexes_with_fraction:
-                    f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                              dabax_repository=dabax_repository, verbose=verbose))
-            else: # use xraylib
-                if 'AtomicName' not in atom[0].keys():
-                    for i in unique_indexes_with_fraction:  #normal case come in here
-                        f0coeffs.append(f0_xop(atom[i]['Zatom']))
-                else:   #for case with like 'Y3+' entries in f0_xop
-                    import re
-                    for i in unique_indexes_with_fraction:
-                        x = atom[i]['AtomicName']
-                        tmp_x = re.search('(^[a-zA-Z]*)',x)
-                        if tmp_x.group(0) == x:
-                            f0coeffs.append(f0_xop(atom[i]['Zatom']))  #neutral atom
-                        else:    
-                            f0coeffs.append(f0_xop(0,AtomicName=x))    #charged atom
-
-    else:
-        libmethod=1 # 0=dabax, 1=combined(Dabax for charge!=0, xraylib for charge=0)
-        if libmethod == 0:
-            f0coeffs = []
-            for i in unique_indexes_with_fraction:
-                    f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                            dabax_repository=dabax_repository, verbose=verbose) )
-        else:
-            f0coeffs = []
-            total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
-
-            if total_charge_flag != 0: # Use dabax
-                for i in unique_indexes_with_fraction:
-                    f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
-                                                              dabax_repository=dabax_repository, verbose=verbose))
-            else: # use xraylib
-                for i in unique_indexes_with_fraction:
-                    f0coeffs.append(f0_xop(atom[i]['Zatom']))
-
-
-    nbatom_new = (len(unique_indexes_with_fraction))
-    txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom_new
-    output_dictionary["nbatom"] = nbatom_new  # different with diff_pat for complex crystal
-
-    txt += "# for each element-site, the number of scattering electrons (Z_i + charge_i)\n"
-    for i in unique_indexes_with_fraction:
-        txt += "%f " % (list_Zatom[i] + list_charge[i])
-    txt += "\n"
-
-    atnum_list = []
-    for i in unique_indexes_with_fraction:
-        atnum_list.append (list_Zatom[i] + list_charge[i])
-    output_dictionary["atnum"] = atnum_list
-
-
-    if do_not_prototype:
-        txt += "# for each element-site, the occupation factor\n"
-        unique_fraction = [list_fraction[i] for i in range(number_of_atoms)]
-        for z in unique_fraction:
-            txt += "%g " % (1)
-        txt += "\n"
-        output_dictionary["fraction"] = unique_fraction
-    else:
-        txt += "# for each element-site, the occupation factor\n"
-        unique_fraction = [list_fraction[i] for i in unique_indexes_with_fraction]
-        for z in unique_fraction:
-            txt += "%g " % (z)
-        txt += "\n"
-        output_dictionary["fraction"] = unique_fraction
-
+    # calculate array of temperature factor for all atoms
     #
     # Consider anisotropic temperature factor
     # X.J. Yu, slsyxj@nus.edu.sg
@@ -251,48 +129,138 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
         B_TFac = 1
     else:
         B_TFac = 0
-
-    txt += "# for each element-site, the temperature factor\n"  # temperature parameter
-
+    #
+    #
+    #
     list_temper = []
+    list_temper_label = []
     if ANISO_SEL == 0:
-        for i in unique_indexes_with_fraction:
-            txt += "%5.3f " % temper
+        for i in range(number_of_atoms):
             list_temper.append(temper)
+            list_temper_label.append(-1)
     elif ANISO_SEL == 1:
         if B_TFac:
-            for i in unique_indexes_with_fraction:
-                txt += "%5.3f " %  TFac[0, i]
+            for i in range(number_of_atoms):
                 list_temper.append(TFac[0, i])
+                list_temper_label.append(TFac[2, i])
         else:
             raise Exception("No crystal data to calculate isotropic temperature factor for crystal %s" % descriptor)
     elif ANISO_SEL == 2:
         if B_TFac:
-            for i in unique_indexes_with_fraction:
-                txt += "%5.3f " %  TFac[1, i]
+            for i in range(number_of_atoms):
                 list_temper.append(TFac[1, i])
+                list_temper_label.append(TFac[2, i])
         else:
             raise Exception("No crystal data to calculate anisotropic temperature factor for crystal %s" % descriptor)
 
+    list_AtomicName = []
+    for i in range(number_of_atoms):
+        s = atomic_symbols_dabax()[atom[i]['Zatom']]
+        if sourceCryst == 1: # charge is not available in xraylib
+            if atom[i]['charge'] != 0.0:  # if charge is 0, s is symbol only, not B0, etc
+                s = s + f'%+.6g' % atom[i]['charge']
+        list_AtomicName.append(s)
+
+    # identify the prototypical atoms
+    labels_prototypical = []
+    for i in range(number_of_atoms):
+        labels_prototypical.append("Z=%d C=%g F=%g T=%g" % (list_Zatom[i], list_charge[i], list_fraction[i], list_temper_label[i]))
+
+    if do_not_prototype:
+        indices_prototypical = numpy.arange(number_of_atoms)  # different with diff_pat for complex crystal
+    else:
+        indices_prototypical = numpy.unique(labels_prototypical, return_index=True)[1]
+
+    number_of_prototypical_atoms = len(indices_prototypical)
+
+    # for i in range(number_of_prototypical_atoms):
+    #     print("   >>> ", i, indices_prototypical[i], labels_prototypical[indices_prototypical[i]])
+    #
+    # for i in indices_prototypical:
+    #     print("   >>>>> ", i, labels_prototypical[i])
+    #
+    # print(">>>>  list_labels", len(labels_prototypical), len(indices_prototypical), labels_prototypical)
+
+    #
+    # get f0 coefficients
+    #
+
+    f0coeffs = []
+    if sourceF0 == 0:
+        for i in indices_prototypical:
+            f0coeffs.append(f0_xop(atom[i]['Zatom']))
+    elif sourceF0 == 1:
+        for i in indices_prototypical:
+                f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
+                                                        dabax_repository=dabax_repository, verbose=verbose) )
+    elif sourceF0 == 2:
+        total_charge_flag = numpy.abs(numpy.array(list_charge)).sum() # note the abs(): to be used as flag...
+
+        if total_charge_flag != 0: # Use dabax
+            for i in indices_prototypical:
+                f0coeffs.append(f0_with_fractional_charge(atom[i]['Zatom'], atom[i]['charge'],
+                                                          dabax_repository=dabax_repository, verbose=verbose))
+        else: # use xraylib
+            if 'AtomicName' not in atom[0].keys():
+                for i in indices_prototypical:  #normal case come in here
+                    f0coeffs.append(f0_xop(atom[i]['Zatom']))
+            else:   #for case with like 'Y3+' entries in f0_xop
+                import re
+                for i in indices_prototypical:
+                    x = atom[i]['AtomicName']
+                    tmp_x = re.search('(^[a-zA-Z]*)',x)
+                    if tmp_x.group(0) == x:
+                        f0coeffs.append(f0_xop(atom[i]['Zatom']))  #neutral atom
+                    else:
+                        f0coeffs.append(f0_xop(0,AtomicName=x))    #charged atom
+
+    txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % number_of_prototypical_atoms
+    output_dictionary["nbatom"] = number_of_prototypical_atoms
+
+    txt += "# for each element-site, the number of scattering electrons (Z_i + charge_i)\n"
+    atnum_list = []
+    for i in indices_prototypical:
+        txt += "%f " % (list_Zatom[i] + list_charge[i])
+        atnum_list.append(list_Zatom[i] + list_charge[i])
     txt += "\n"
-    output_dictionary["temper"] = list_temper  # not necessary same with diff_pat
+    output_dictionary["atnum"] = atnum_list
+
+
+    txt += "# for each element-site, the occupation factor\n"
+    unique_fraction = [list_fraction[i] for i in indices_prototypical]
+    for z in unique_fraction:
+        txt += "%g " % (z)
+    txt += "\n"
+    output_dictionary["fraction"] = unique_fraction
+
+    txt += "# for each element-site, the temperature factor\n"  # temperature parameter
+    unique_temper = []
+    for i in indices_prototypical:
+        txt += "%g " % list_temper[i]
+        unique_temper.append(list_temper[i])
+    txt += "\n"
+    output_dictionary["temper"] = unique_temper
 
     #
     # Geometrical part of structure factor:  G and G_BAR
     #
     txt += "# for each type of element-site, COOR_NR=G_0\n"
     list_multiplicity = []
-    for i in unique_indexes_with_fraction:
-        #    txt += "%d "%list_AtomicName.count(z)
-        zz = list_AtomicName[i]
-        fraction = list_fraction[i]
-        count = 0
-        for j in range(len(list_Zatom)):
-            if (list_AtomicName[j] == zz) and (list_fraction[j] == fraction): count += 1
+    for i in indices_prototypical:
+        # zz = list_AtomicName[i]
+        # fraction = list_fraction[i]
+        # temper = list_temper[i]
+        # count = 0
+        # for j in range(len(list_Zatom)):
+        #     if (list_AtomicName[j] == zz) and (list_fraction[j] == fraction) and (list_temper[j] == temper): count += 1
+
         if do_not_prototype:
             txt += "%d " % 1
             list_multiplicity.append(1)
         else:
+            count = 0
+            for j in range(number_of_atoms):
+                if labels_prototypical[j] == labels_prototypical[i]: count += 1
             txt += "%d " % count
             list_multiplicity.append(count)
     txt += "\n"
@@ -302,16 +270,17 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
     txt += "# for each type of element-site, G and G_BAR (both complex)\n"
     list_g = []
     list_g_bar = []
-    for i in unique_indexes_with_fraction:
-        ga = 0.0 + 0j
-        zz = list_AtomicName[i]
-        ff = list_fraction[i]
+    for i in indices_prototypical:
+
         if do_not_prototype:
-            ga_item = numpy.exp(2j * numpy.pi * (hh * list_x[i] + kk * list_y[i] + ll * list_z[i]))
-            ga += ga_item
+            # # ga_item = numpy.exp(2j * numpy.pi * (hh * list_x[i] + kk * list_y[i] + ll * list_z[i]))
+            # ga += ga_item
+            ga = numpy.exp(2j * numpy.pi * (hh * list_x[i] + kk * list_y[i] + ll * list_z[i]))
         else:
+            ga = 0.0 + 0j
             for j in range(number_of_atoms):
-                if list_AtomicName[j] == zz and list_fraction[j] == ff:
+                if labels_prototypical[j] == labels_prototypical[i]:
+                # if list_AtomicName[j] == zz and list_fraction[j] == ff and list_temper[j] == tt:
                     ga_item = numpy.exp(2j * numpy.pi * (hh * list_x[j] + kk * list_y[j] + ll * list_z[j]))
                     ga += ga_item
 
@@ -342,16 +311,16 @@ def bragg_calc2(descriptor="YB66", hh=1, kk=1, ll=1, temper=1.0, emin=5000.0, em
 
     txt += "# for each energy point, energy, F1(1),F2(1),...,F1(nbatom),F2(nbatom)\n"
     list_energy = []
-    out_f1 = numpy.zeros((len(unique_indexes_with_fraction), npoint), dtype=float)
-    out_f2 = numpy.zeros((len(unique_indexes_with_fraction), npoint), dtype=float)
-    out_fcompton = numpy.zeros((len(unique_indexes_with_fraction), npoint), dtype=complex)
+    out_f1 = numpy.zeros((len(indices_prototypical), npoint), dtype=float)
+    out_f2 = numpy.zeros((len(indices_prototypical), npoint), dtype=float)
+    out_fcompton = numpy.zeros((len(indices_prototypical), npoint), dtype=complex)
 
     for i in range(npoint):
         energy = (emin + estep * i)
         txt += ("%20.11e \n") % (energy)
         list_energy.append(energy)
 
-        for j,jj in enumerate(unique_indexes_with_fraction):
+        for j,jj in enumerate(indices_prototypical):
             f1a = xraylib.Fi(list_Zatom[jj], energy * 1e-3)
             f2a = -xraylib.Fii(list_Zatom[jj], energy * 1e-3)  # TODO: check the sign!!
             txt += (" %20.11e %20.11e 1.000 \n") % (f1a, f2a)
@@ -388,22 +357,27 @@ def TemperFactor(sinTheta_lambda,anisos,Miller={'h':1,'k':1,'l':1},cell={'a':23.
     #-
     '''
     #0: isotropic, 1: anisotropic temerature factors
-    results = numpy.zeros([2,n])
+    # results = numpy.zeros([2,n])
+    results = numpy.zeros([3,n]) # srio adds "start"
+
     for i,aniso in enumerate(anisos):
         s = aniso['start']-1
         e = aniso['end']
         if aniso['beta11'] >= 1:
+            print(">>>>>>>>>>>>>>>>> WHY AM I HERE? ")
             #if beta11>=1, then beta22 is Beq, the other fields are unused
             #if Beq specified, anisotropic temperature factor same as isotropic
             Beq = aniso['beta22']
             results[1,s:e] = numpy.exp(-sinTheta_lambda*sinTheta_lambda*Beq)
         else:
             Beq = 4.0/3.0*( aniso['beta11']*cell['a']*cell['a']+aniso['beta22']*cell['b']*cell['b']+ \
-                aniso['beta33']*cell['c']*cell['c'] )
+                aniso['beta33']*cell['c']*cell['c'] ) # this is true only for cubix, tetragonal and orthorhombic Giacovazzo pag 188
             results[1,s:e] = numpy.exp(-(aniso['beta11']*Miller['h']*Miller['h'] + \
                   aniso['beta22']*Miller['k']*Miller['k'] + aniso['beta33']*Miller['l']*Miller['l'] + \
                   2.0*Miller['h']*Miller['k']*aniso['beta12'] + 2.0*Miller['h']*Miller['l']*aniso['beta13'] + 2.0*Miller['k']*Miller['l']*aniso['beta23']))
         results[0,s:e] = numpy.exp(-sinTheta_lambda*sinTheta_lambda*Beq)
+
+        results[2, s:e] = s
 
     return results
 
@@ -510,9 +484,6 @@ def check_temperature_factor():
     if 'Aniso' in cryst.keys() and cryst['Aniso'][0]['start']>0:    #most crystals have no Anisotropic input
         print(">>> is Anisotropic", len(cryst["Aniso"]))
 
-    for ele in cryst['Aniso']:
-        print(ele)
-
 
     # Consider anisotropic temperature factor
     # X.J. Yu, slsyxj@nus.edu.sg
@@ -529,15 +500,14 @@ def check_temperature_factor():
         print(">>> is Anisotropic")
         TFac = TemperFactor( 1.0/(2.0*dspacing*1e8),cryst['Aniso'],Miller={'h':hh,'k':kk,'l':ll}, \
             cell={'a':cryst['a'],'b':cryst['b'],'c':cryst['c']},
-                             # n=len(atom),
                              n = cryst["n_atom"]
                              )
         B_TFac = 1
     else:
         B_TFac = 0
 
-    print("TFac: ", TFac, cryst["n_atom"], len(TFac[0]), len(TFac[1]))
 
+    return TFac, cryst
 
 def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
                            do_assert=True, models=[1,1,1],
@@ -571,8 +541,8 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
     # Xiaojiang
     #
     if descriptor == "YB66":
-        ANISO_SEL = 1   #  0: old Temper 1:Anisotropic  2: isotropic
-        do_not_prototype = 1
+        ANISO_SEL = 2   #  0: old Temper 1:Anisotropic  2: isotropic
+        do_not_prototype = 0
     else:
         ANISO_SEL = 0
         do_not_prototype = 0
@@ -585,6 +555,12 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
                             do_not_prototype=do_not_prototype,sourceCryst=1,
                             verbose=False, dabax_repository=dabax_repository)
         os.system("cp xcrystal.bra xcrystal_2.bra")
+
+        if False:
+            # to test reader...
+            dic2aLoaded = load_bragg_preprocessor_file("xcrystal_2.bra")
+            dic2a = dic2aLoaded #############################
+
 
         dic2b = crystal_fh(dic2a, energy)
 
@@ -622,17 +598,40 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
 
     if do_assert:
         if models[1] and models[2]:
-            assert (numpy.abs(dic2b['STRUCT'] - dic1b['STRUCT']) < 1e-5)
-            assert (numpy.abs(dic2b['FH'] - dic1b['FH']) < 1e-5)
-            assert (numpy.abs(dic2b['FH_BAR'] - dic1b['FH_BAR']) < 1e-5)
-            assert (numpy.abs(dic2b['F_0'] - dic1b['F_0']) < 1)
+            print ('STRUCT', dic1b['STRUCT'], dic2b['STRUCT'] )
+            print ('FH    ', dic1b['FH'],     dic2b['FH']     )
+            print ('FH_BAR', dic1b['FH_BAR'], dic2b['FH_BAR'] )
+            print ('F_0   ', dic1b['F_0'],    dic2b['F_0']    )
+            assert (numpy.abs(dic2b['STRUCT'] - dic1b['STRUCT']) < 1e-3)
+            assert (numpy.abs(dic2b['FH']     - dic1b['FH'])     < 1e-3)
+            assert (numpy.abs(dic2b['FH_BAR'] - dic1b['FH_BAR']) < 1e-3)
+            assert (numpy.abs(dic2b['F_0']    - dic1b['F_0'])    < 1)
         if descriptor == "YB66":
-            values_from = 0 # 0=Xiaojiang, 1=srio
+            values_from = 1 # 0=Xiaojiang, 1=srio
+            print ('STRUCT', dic2b['STRUCT'])
+            print ('FH    ', dic2b['FH'])
+            print ('FH_BAR', dic2b['FH_BAR'])
+            print ('F_0   ', dic2b['F_0'])
             if values_from == 1:
-                assert (numpy.abs(dic2b['STRUCT'] -  (565.7225232608029 + 35.9668881704435j))  < 1e-2)
-                assert (numpy.abs(dic2b['FH'] -     (565.7225232608029 + 35.966888170443404j)) < 1e-2)
-                assert (numpy.abs(dic2b['FH_BAR'] - (565.7225232608029 + 35.96688817044359j))  < 1e-2)
-                assert (numpy.abs(dic2b['F_0'] -    (8846.406209552279 + 56.12593721027547j))  < 0.3)
+                # assert (numpy.abs(dic2b['STRUCT'] -  (565.7225232608029 + 35.9668881704435j))  < 1e-2)
+                # assert (numpy.abs(dic2b['FH'] -     (565.7225232608029 + 35.966888170443404j)) < 1e-2)
+                # assert (numpy.abs(dic2b['FH_BAR'] - (565.7225232608029 + 35.96688817044359j))  < 1e-2)
+                # assert (numpy.abs(dic2b['F_0'] -    (8846.406209552279 + 56.12593721027547j))  < 0.3)
+                if ANISO_SEL == 0:
+                    assert (numpy.abs(dic2b['STRUCT'] - (570.0726764188605+36.24657824291629j))   < 1e-2)
+                    assert (numpy.abs(dic2b['FH'] -     (570.0726764188606+36.2465782429162j))    < 1e-2)
+                    assert (numpy.abs(dic2b['FH_BAR'] - (570.0726764188604+36.2465782429164j))    < 1e-2)
+                    assert (numpy.abs(dic2b['F_0'] -    (8848.638071350848+56.12049122626639j))   < 0.3)
+                elif ANISO_SEL == 1:
+                    assert (numpy.abs(dic2b['STRUCT'] - (565.7226407626008+35.963615210235865j))   < 1e-2)
+                    assert (numpy.abs(dic2b['FH'] -     (565.7226407626005+35.96361521023578j))    < 1e-2)
+                    assert (numpy.abs(dic2b['FH_BAR'] - (565.7226407626013+35.96361521023595j))    < 1e-2)
+                    assert (numpy.abs(dic2b['F_0'] -    (8848.638071350848+56.12049122626639j))    < 0.3)
+                elif ANISO_SEL == 2:
+                    assert (numpy.abs(dic2b['STRUCT'] - (565.5391037232481+35.9521062287469j))    < 1e-2)
+                    assert (numpy.abs(dic2b['FH'] -     (565.5391037232482+35.9521062287468j))    < 1e-2)
+                    assert (numpy.abs(dic2b['FH_BAR'] - (565.5391037232481+35.952106228747j))     < 1e-2)
+                    assert (numpy.abs(dic2b['F_0'] -    (8848.638071350848+56.12049122626639j))   < 0.3)
             else:
                 use_Atomic_name = True
                 if not use_Atomic_name:
@@ -665,25 +664,63 @@ if __name__ == "__main__":
     #
     from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc as bragg_calc_old
 
+    #
     # test temperature
-    # check_temperature_factor()
+    #
+    if False:
+        TFac, cryst = check_temperature_factor()
 
-    # test Si
-    check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
-                           dabax_repository=dabax_repository)
+        print("TFac: ", TFac, cryst["n_atom"], len(TFac[0]), len(TFac[1]))
 
-    # test Muscovite
-    check_structure_factor(descriptor="Muscovite", hh=1, kk=1, ll=1, energy=8000, do_assert=1, models=[0,1,1],
-                           dabax_repository=dabax_repository)
+        len(cryst["Aniso"])
+        START = []
+        for i,ele in enumerate(cryst["Aniso"]):
+            START.append(ele['start'])
+            print(i,ele, TFac[:,START[-1]])
 
-    # Test YB66
-    check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1],
-                           dabax_repository=dabax_repository)
+        print( ">>>>>different iso 0 values = ", len ( numpy.unique(TFac[0,:] , return_index=True)[1] ))
+        print( ">>>>>different iso 1 values = ", len ( numpy.unique(TFac[1,:] , return_index=True)[1] ))
+        print( ">>>>>different iso 0 values = ", len ( numpy.unique(TFac[0,START] , return_index=True)[1] ), numpy.unique(TFac[0,START] , return_index=True)[1])
+        print( ">>>>>different iso 1 values = ", len ( numpy.unique(TFac[1,START] , return_index=True)[1] ), numpy.unique(TFac[1,START] , return_index=True)[1])
+
+        atom = cryst['atom']
+        number_of_atoms = len(atom)
+        list_Zatom = [atom[i]['Zatom'] for i in range(len(atom))]
+        list_Zatom = numpy.array(list_Zatom)
+        list_Zatom = list_Zatom / list_Zatom.max()
+        from srxraylib.plot.gol import plot
+        plot(numpy.arange(TFac.shape[1]), TFac[0,:],
+             numpy.arange(TFac.shape[1]), TFac[1,:],
+             numpy.arange(TFac.shape[1]), list_Zatom,
+             numpy.arange(TFac.shape[1]), TFac[2,:] / TFac[2,:].max(),
+             xtitle='atom index', ytitle='temperature factor', legend=['iso','aniso','Z/max(Z)','start/max(start)'])
+        print( ">>>>>different iso values = ", len ( numpy.unique(TFac[0,:] , return_index=True)[1] ))
+
+
+    #
+    # test crystal
+    #
+    if True:
+        # test Si
+        print("Testing Si...")
+        check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
+                               dabax_repository=dabax_repository)
+
+        # test Muscovite
+        print("Testing Muscovite...")
+        check_structure_factor(descriptor="Muscovite", hh=1, kk=1, ll=1, energy=8000, do_assert=1, models=[0,1,1],
+                               dabax_repository=dabax_repository)
+
+        # Test YB66
+        print("Testing YB66...")
+        check_structure_factor(descriptor="YB66", hh=4, kk=0, ll=0, energy=8040.0, do_assert=1, models=[0,0,1],
+                               dabax_repository=dabax_repository)
 
     #
     # f0
     #
-    if True:
+
+    if False:
         from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_calc
 
         Si_xrl = f0_calc      (0, "Si", 0, 6, 100)
@@ -706,3 +743,9 @@ if __name__ == "__main__":
              color=['r','r','b','b'],
              legend=['Si xraylib','Si dabax','H2O xraylib','H2O dabax'])
 
+
+    if True:
+        cryst = Crystal_GetCrystal(filename='Crystals.dat', entry_name='YB66', dabax_repository=dabax_repository)
+        mt = bragg_metrictensor(cryst['a'], cryst['b'], cryst['c'], cryst['alpha'], cryst['beta'], cryst['gamma'],
+                                RETURN_REAL_SPACE=0,RETURN_VOLUME=0, HKL=None)
+        print(mt, mt[0,0])

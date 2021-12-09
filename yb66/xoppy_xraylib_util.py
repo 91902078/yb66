@@ -1301,6 +1301,138 @@ def lorentz(theta_bragg_deg,return_what=0):
         return polarization_factor*lorentz_factor*geometrical_factor
 
 
+def load_bragg_preprocessor_file(filename=""):
+
+
+    def __parse_line(line, remove=[]):
+        if len(remove) > 0:
+            for str1 in remove:
+                line = line.replace(str1, " ")
+        line = " ".join(line.split())
+        variables = line.split(" ")
+        return variables
+
+
+    f = open(filename, 'r')
+    lines = f.read().splitlines()
+    f.close()
+
+    out_dict = {}
+
+    line_index = 2
+
+
+    line_index += 1 # jump comment
+    variables = __parse_line(lines[line_index])
+    # print(">>>>>>>>>> variables rn dspacing", variables)
+    out_dict["rn"] = float(variables[0])
+    out_dict["dspacing"] = float(variables[1])
+
+    line_index += 2 # jump comment
+    variables = __parse_line(lines[line_index])
+    # print(">>>>>>>>>> variables nbatom", variables)
+    out_dict["nbatom"] = int(variables[0])
+
+    line_index += 2 # jump comment
+    variables = __parse_line(lines[line_index])
+    # print(">>>>>>>>>> variables atnum", variables)
+    out_dict["atnum"] = []
+    for variable in variables:
+        out_dict["atnum"].append(float(variable))
+
+
+    line_index += 2 # jump comment
+    variables = __parse_line(lines[line_index])
+    # print(">>>>>>>>>> variables fraction", variables)
+    out_dict["fraction"] = []
+    for variable in variables:
+        out_dict["fraction"].append(float(variable))
+
+    line_index += 2  # jump comment
+    variables = __parse_line(lines[line_index])
+    # print(">>>>>>>>>> temper atnum", variables)
+    out_dict["temper"] = []
+    for variable in variables:
+        out_dict["temper"].append(float(variable))
+
+    line_index += 2  # jump comment
+    variables = __parse_line(lines[line_index])
+    # print(">>>>>>>>>> variables G_0", variables)
+    out_dict["G_0"] = []
+    for variable in variables:
+        out_dict["G_0"].append(int(variable))
+
+    line_index += 1
+    out_dict["G"] = []
+    out_dict["G_BAR"] = []
+    for i in range(out_dict["nbatom"]):
+        line_index += 1
+        variables_G    = __parse_line(lines[line_index], remove=["(",")",","])
+        # print(">>>>>>>>>> variables G", variables_G)
+        out_dict["G"].append(float(variables_G[0]) + 1j * float(variables_G[1]))
+        # print(">>> G: ", out_dict["G"][-1])
+
+        line_index += 1
+        variables_GBAR = __parse_line(lines[line_index], remove=["(", ")", ","])
+        # print(">>>>>>>>>> variables G_BAR", variables_GBAR)
+        out_dict["G_BAR"].append(float(variables_GBAR[0]) + 1j * float(variables_GBAR[1]))
+        # print(">>> G_BAR: ", out_dict["G_BAR"][-1])
+
+
+    line_index += 1  # jump comment
+    out_dict["f0coeff"] = []
+    for i in range(out_dict["nbatom"]):
+        f0_ilist = []
+        line_index += 1
+        variables = __parse_line(lines[line_index])
+        # print(">>>>>>>>>> variables f0", variables)
+        for i in range(int(variables[0])):
+            f0_ilist.append(float(variables[i+1]))
+        # print(">>>> f0coeff[i]", f0_ilist)
+        out_dict["f0coeff"].append((f0_ilist))
+
+    line_index += 2
+    variables = __parse_line(lines[line_index])
+    # print(">>>>>>>>>> variables npoint", variables)
+    npoint = int(variables[0])
+    out_dict["npoint"] = npoint
+
+
+    line_index += 1
+    Energy = numpy.zeros(npoint)
+    F1a = numpy.zeros(npoint)
+    F2a = numpy.zeros(npoint)
+    F1b = numpy.zeros(npoint)
+    F2b = numpy.zeros(npoint)
+
+    # for j, jj in enumerate(indices_prototypical):
+    #     f1a = xraylib.Fi(list_Zatom[jj], energy * 1e-3)
+    #     f2a = -xraylib.Fii(list_Zatom[jj], energy * 1e-3)  # TODO: check the sign!!
+    #     txt += (" %20.11e %20.11e 1.000 \n") % (f1a, f2a)
+    Energy = numpy.zeros(npoint)
+    out_f1       = numpy.zeros( (out_dict["nbatom"], npoint) )
+    out_f2       = numpy.zeros( (out_dict["nbatom"], npoint) )
+    out_fcompton = numpy.zeros( (out_dict["nbatom"], npoint) )
+
+    for i in range(npoint):
+        line_index += 1
+        variables = __parse_line(lines[line_index])
+        # print(">>>>>>>>>> variables Energy[i]", variables)
+        Energy[i] = float(variables[0])
+        for j in range(out_dict["nbatom"]):
+            line_index += 1
+            variables = __parse_line(lines[line_index])
+            out_f1[j,i]        = float(variables[0])
+            out_f2[j,i]        = float(variables[1])
+            out_fcompton[j,i]  = float(variables[2])
+
+
+    out_dict["energy"] = Energy
+    out_dict["f1"] = out_f1
+    out_dict["f2"] = out_f2
+    out_dict["fcompton"] = out_fcompton
+
+    return out_dict
 
 def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.0,estep=100.0,fileout=None):
     """
@@ -1527,7 +1659,6 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
 
 
     itheta = numpy.zeros_like(phot_in)
-    F000 = numpy.zeros(nbatom)
     for i,phot in enumerate(phot_in):
 
         if theta is None:
@@ -1546,6 +1677,7 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
         # print("Ratio: ",ratio)
 
         F0 = numpy.zeros(nbatom)
+        F000 = numpy.zeros(nbatom)
         for j in range(nbatom):
             #icentral = int(f0coeff.shape[1]/2)
             #F0[j] = f0coeff[j,icentral]
@@ -1555,8 +1687,8 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
             for i in range(icentral):
                 #F0[j] += f0coeff[j,i] * numpy.exp(-1.0*f0coeff[j,i+icentral+1]*ratio**2)
                 F0[j] += f0coeff[j][i] * numpy.exp(-1.0*f0coeff[j][i+icentral+1]*ratio**2)
-                F000[j] += f0coeff[j][i]  #actual number of electrons carried by each atom, X.J. Yu, slsyxj@nus.edu.sg
-
+                #srio F000[j] += f0coeff[j][i]  #actual number of electrons carried by each atom, X.J. Yu, slsyxj@nus.edu.sg
+            F000[j] = atnum[j] # srio
         # ;C
         # ;C Interpolate for the atomic scattering factor.
         # ;C
@@ -1598,7 +1730,7 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
             FHi += fraction[j] * (G[j] *  F2[j] * 1.0) * temper[j]
             FN = F000[j] + F1[j] + 1j * F2[j]
             F_0 += fraction[j] * (G_0[j] *  FN  * 1.0)
-            TEMPER_AVE *= (temper[j])**(G_0[j]/(G_0.sum()))
+            # TEMPER_AVE *= (temper[j])**(G_0[j]/(G_0.sum()))
 
             FH_BAR  += fraction[j] * ((G_BAR[j] * F[j] * 1.0)) * temper[j]
             FH_BARr += fraction[j] * ((G_BAR[j] * (F0[j]  + F1[j]) *1.0)) * temper[j]
@@ -2311,4 +2443,5 @@ if __name__ == "__main__":
     dic2b = crystal_fh(dic2a, 8000.0)
     assert ( numpy.abs(dic2b["F_0"].real - 801.722) < 0.1)
     assert (numpy.abs(dic2b["F_0"].imag - 13.08712) < 0.011)
+
 
