@@ -371,7 +371,7 @@ def TemperFactor(sinTheta_lambda,anisos,Miller={'h':1,'k':1,'l':1},cell={'a':23.
             results[1,s:e] = numpy.exp(-sinTheta_lambda*sinTheta_lambda*Beq)
         else:
             Beq = 4.0/3.0*( aniso['beta11']*cell['a']*cell['a']+aniso['beta22']*cell['b']*cell['b']+ \
-                aniso['beta33']*cell['c']*cell['c'] ) # this is true only for cubix, tetragonal and orthorhombic Giacovazzo pag 188
+                aniso['beta33']*cell['c']*cell['c'] ) # this is true only for cubic, tetragonal and orthorhombic Giacovazzo pag 188
             results[1,s:e] = numpy.exp(-(aniso['beta11']*Miller['h']*Miller['h'] + \
                   aniso['beta22']*Miller['k']*Miller['k'] + aniso['beta33']*Miller['l']*Miller['l'] + \
                   2.0*Miller['h']*Miller['k']*aniso['beta12'] + 2.0*Miller['h']*Miller['l']*aniso['beta13'] + 2.0*Miller['k']*Miller['l']*aniso['beta23']))
@@ -650,13 +650,13 @@ def check_structure_factor(descriptor="Si", hh=1, kk=1, ll=1, energy=8000,
 if __name__ == "__main__":
     import os
 
-
     # redefine the default server at ESRF because default server name is different outside and inside ESRF
     import socket
-    dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
     if socket.getfqdn().find("esrf") >= 0:
-        # dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
-        dabax_repository = "/scisoft/DABAX/data"
+        dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+        # dabax_repository = "/scisoft/DABAX/data"
+    else:
+        dabax_repository = "http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"
 
 
     #
@@ -667,7 +667,7 @@ if __name__ == "__main__":
     #
     # test temperature
     #
-    if False:
+    if True:
         TFac, cryst = check_temperature_factor()
 
         print("TFac: ", TFac, cryst["n_atom"], len(TFac[0]), len(TFac[1]))
@@ -691,9 +691,11 @@ if __name__ == "__main__":
         from srxraylib.plot.gol import plot
         plot(numpy.arange(TFac.shape[1]), TFac[0,:],
              numpy.arange(TFac.shape[1]), TFac[1,:],
-             numpy.arange(TFac.shape[1]), list_Zatom,
-             numpy.arange(TFac.shape[1]), TFac[2,:] / TFac[2,:].max(),
-             xtitle='atom index', ytitle='temperature factor', legend=['iso','aniso','Z/max(Z)','start/max(start)'])
+             # numpy.arange(TFac.shape[1]), list_Zatom,
+             # numpy.arange(TFac.shape[1]), TFac[2,:] / TFac[2,:].max(),
+             xtitle='atom index', ytitle='temperature factor',
+             legend=['isotropic','anisosotropic',], #'Z/max(Z)','start/max(start)']
+             )
         print( ">>>>>different iso values = ", len ( numpy.unique(TFac[0,:] , return_index=True)[1] ))
 
 
@@ -720,7 +722,7 @@ if __name__ == "__main__":
     # f0
     #
 
-    if False:
+    if True:
         from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_calc
 
         Si_xrl = f0_calc      (0, "Si", 0, 6, 100)
@@ -744,8 +746,10 @@ if __name__ == "__main__":
              legend=['Si xraylib','Si dabax','H2O xraylib','H2O dabax'])
 
 
+    # crystal tests
     if True:
         cryst = Crystal_GetCrystal(filename='Crystals.dat', entry_name='YB66', dabax_repository=dabax_repository)
+        print(cryst['a'], cryst['b'], cryst['c'], cryst['alpha'], cryst['beta'], cryst['gamma'])
         mt = bragg_metrictensor(cryst['a'], cryst['b'], cryst['c'], cryst['alpha'], cryst['beta'], cryst['gamma'],
                                 RETURN_REAL_SPACE=0,RETURN_VOLUME=0, HKL=None)
         print(mt, mt[0,0])

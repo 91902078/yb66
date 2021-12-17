@@ -99,42 +99,42 @@ def descriptor_kind_index(descriptor):
         pass
     return out
 
-# moved to dabax
-# def parse_formula(formula): # included now in xraylib, so not used but kept for other possible uses
-#     """
-#
-#     :param formula: a formule (e.g. H2O)
-#     :return: a dictionary with tags: "Symbols","Elements","n","atomicWeight","massFractions","molecularWeight"
-#
-#     """
-#     import re
-#     tmp = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
-#     elements = []
-#     fatomic = []
-#     atomic_weight = []
-#     zetas = []
-#     massFractions = []
-#     for element,str_number in tmp:
-#         if str_number == '':
-#             number = 1
-#         else:
-#             number = int(str_number)
-#
-#         elements.append(element)
-#         fatomic.append(number)
-#         zetas.append(xraylib.SymbolToAtomicNumber(element))
-#         atomic_weight.append(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
-#         massFractions.append(number*xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
-#
-#     mweight = 0.0
-#     for i in range(len(fatomic)):
-#         mweight += atomic_weight[i] * fatomic[i]
-#     print("Molecular weight: ",mweight)
-#
-#     for i in range(len(massFractions)):
-#         massFractions[i] /= mweight
-#
-#     return {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
+# copied and enhanced in dabax_util TODO: remove this one
+def parse_formula(formula): # included now in xraylib, so not used but kept for other possible uses
+    """
+
+    :param formula: a formule (e.g. H2O)
+    :return: a dictionary with tags: "Symbols","Elements","n","atomicWeight","massFractions","molecularWeight"
+
+    """
+    import re
+    tmp = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
+    elements = []
+    fatomic = []
+    atomic_weight = []
+    zetas = []
+    massFractions = []
+    for element,str_number in tmp:
+        if str_number == '':
+            number = 1
+        else:
+            number = int(str_number)
+
+        elements.append(element)
+        fatomic.append(number)
+        zetas.append(xraylib.SymbolToAtomicNumber(element))
+        atomic_weight.append(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
+        massFractions.append(number*xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(element)))
+
+    mweight = 0.0
+    for i in range(len(fatomic)):
+        mweight += atomic_weight[i] * fatomic[i]
+    print("Molecular weight: ",mweight)
+
+    for i in range(len(massFractions)):
+        massFractions[i] /= mweight
+
+    return {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
 
 #
 # bind some xraylib functions to allow NIST compound as inputs
@@ -231,9 +231,8 @@ def interface_reflectivity(alpha,gamma,theta1):
 
     # ;** Computes now the polarization ratio
 
-
-    ratio1 = 4 * rho**2 * (rho * numpy.sin(theta1) - numpy.cos(theta1))**2 + gamma**2 * numpy.sin(theta1)**2
-    ratio2 = 4 * rho**2 * (rho * numpy.sin(theta1) + numpy.cos(theta1))**2 + gamma**2 * numpy.sin(theta1)**2
+    ratio1 = 4 * rho**2 * (rho * numpy.sin(theta1) - numpy.cos(theta1) ** 2)**2 + gamma**2 * numpy.sin(theta1)**2
+    ratio2 = 4 * rho**2 * (rho * numpy.sin(theta1) + numpy.cos(theta1) ** 2)**2 + gamma**2 * numpy.sin(theta1)**2
     ratio = ratio1 / ratio2
 
     rp = rs * ratio
@@ -339,6 +338,9 @@ def f1f2_calc(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, ve
            F=9  returns p-polarized reflectivity
            F=10  returns unpolarized reflectivity
            F=11  returns delta/betaf
+           F=12  returns delta calculated with F1
+           F=13  returns beta calculated with F2
+
     :param density: the density to be used for some calculations. If None, get it from xraylib
     :param rough: the roughness RMS in Angstroms for reflectivity calculations
     :return: a numpy array with results
@@ -400,7 +402,7 @@ def f1f2_calc(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, ve
             out[i] = (1e0-xraylib.Refractive_Index_Re(symbol,1e-3*ienergy,density))
             out[i] /= xraylib.Refractive_Index_Im(symbol,1e-3*ienergy,density)
 
-    if F >= 8 and F <=10: # reflectivities
+    if (F >= 8 and F <=10) or (F >= 12 and F <=13): # reflectivities
         atwt = xraylib.AtomicWeight(Z)
         avogadro = codata.Avogadro
         toangstroms = codata.h * codata.c / codata.e * 1e10
@@ -426,13 +428,16 @@ def f1f2_calc(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, ve
             debyewaller = numpy.exp( -( 4.0 * numpy.pi * numpy.sin(theta) * rough / wavelength)**2)
         else:
             debyewaller = 1.0
-
         if F == 8:   # returns s-polarized reflectivity
             out = rs * debyewaller
         elif F == 9: # returns p-polarized reflectivity
             out = rp * debyewaller
         elif F == 10: # returns unpolarized reflectivity
             out = runp * debyewaller
+        elif F == 12: # returns delta as calculated from f1
+            out = alpha / 2
+        elif F == 13: # returns beta as calculated from f2
+            out = gamma / 2
 
     return out
 
@@ -2443,5 +2448,4 @@ if __name__ == "__main__":
     dic2b = crystal_fh(dic2a, 8000.0)
     assert ( numpy.abs(dic2b["F_0"].real - 801.722) < 0.1)
     assert (numpy.abs(dic2b["F_0"].imag - 13.08712) < 0.011)
-
 
