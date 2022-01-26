@@ -14,7 +14,13 @@ from run_diff_pat import run_diff_pat
 import numpy
 
 if __name__ == "__main__":
-    dabax_repository = "/scisoft/DABAX/data"  # "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+    # redefine the default server at ESRF because default server name is different outside and inside ESRF
+    import socket
+    if socket.getfqdn().find("esrf") >= 0:
+        dabax_repository = "http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"
+        # dabax_repository = "/scisoft/DABAX/data"
+    else:
+        dabax_repository = "http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"
     do_plot = 1
 
     if False:
@@ -109,7 +115,7 @@ if __name__ == "__main__":
     #
     # muscovite profile
     #
-    if False:
+    if True:
 
         descriptor = 'Muscovite'
         #
@@ -203,7 +209,7 @@ if __name__ == "__main__":
     # YB66
     #
 
-    if True:
+    if False:
         descriptor = 'YB66'
         SCANFROM = 0  # in microradiants
         SCANTO = 100  # in microradiants
@@ -213,6 +219,7 @@ if __name__ == "__main__":
 
         print("Using crystal descriptor: ", descriptor)
         bragg_dictionary = bragg_calc2(descriptor=descriptor,
+                                       dabax_repository=dabax_repository,
                                        hh=4, kk=0, ll=0,
                                        temper=1.0,
                                        emin=ENERGY - 100.0, emax=ENERGY + 100.0,

@@ -194,6 +194,7 @@ if __name__ == "__main__":
              a2[:, 0], a2[:, -1],
              linestyle=[None,''],
              marker=[None,"+"],
+             title=descriptor,
              legend=["XOPPY bragg_calc code","NEW bragg_calc2 code"], show=0,
              xtitle=r"$\theta-\theta_B$ [$\mu$rad]", ytitle="reflectivity")
 
@@ -248,7 +249,7 @@ if __name__ == "__main__":
         # plot
         #
         plot(a[:, 0], a[:, -1], show=0,
-             xtitle=r"$\theta-\theta_B$ [$\mu$rad]", ytitle="reflectivity", title="YB66 002 8040eV")
+             xtitle=r"$\theta-\theta_B$ [$\mu$rad]", ytitle="reflectivity", title="YB66 400 8040eV")
 
         plt.savefig("yb66_profile.png")
         print("File yb66_profile.png written to disk.")
