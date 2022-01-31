@@ -83,6 +83,7 @@ if __name__ == "__main__":
 
         import numpy
         from xoppylib.crystals.tools import run_diff_pat as run_diff_pat_new
+        from xoppylib.crystals.tools import bragg_calc2
         import xraylib
         from dabax.dabax_xraylib import DabaxXraylib
 
@@ -98,12 +99,19 @@ if __name__ == "__main__":
         #
         # compute
         #
-        bragg_dict = run_diff_pat_new(
-            CRYSTAL_DESCRIPTOR=descriptor,
-            MILLER_INDEX_H=4,
-            MILLER_INDEX_K=0,
-            MILLER_INDEX_L=0,
-            TEMPER=TEMPER,
+
+        print("Using crystal descriptor: ", descriptor)
+        bragg_dictionary = bragg_calc2(descriptor=descriptor,
+                                       hh=4, kk=0, ll=0,
+                                       temper=1.0,
+                                       emin=ENERGY - 100.0, emax=ENERGY + 100.0,
+                                       estep=(SCANTO - SCANFROM) / SCANPOINTS, fileout="xcrystal.bra",
+                                       material_constants_library=dx)
+
+
+        run_diff_pat_new(
+            bragg_dictionary,
+            preprocessor_file="xcrystal.bra",
             MOSAIC=0,
             GEOMETRY=0,
             SCAN=2,
@@ -121,7 +129,6 @@ if __name__ == "__main__":
             POISSON=0.22,
             CUT="2 -1 -1 ; 1 1 1 ; 0 0 0",
             FILECOMPLIANCE="mycompliance.dat",
-            material_constants_library=dx,
         )
 
         # import os
