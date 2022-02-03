@@ -1,7 +1,7 @@
 import numpy
 import os
 import matplotlib.pylab as plt
-from srxraylib.plot.gol import plot
+from srxraylib.plot.gol import plot, set_qt
 from run_diff_pat import run_diff_pat
 
 import xraylib
@@ -14,21 +14,23 @@ from check_FH import check_structure_factor
 
 if __name__ == "__main__":
 
+    set_qt()
+
     xrl = XraylibDecorated()
     dx = DabaxDecorated()
 
     do_plot = 1
 
-    if True:
+    if False:
         #
         # f0
         #
-        Y0_xrl = xrl.f0_calc(0, "Y", 0, 3, 500)
-        Y0_dbx =  dx.f0_calc(0, "Y", 0, 3, 500)
-        Y3_dbx =  dx.f0_calc(0, "Y", 0, 3, 500, charge=3.0)
-        B0_xrl = xrl.f0_calc(0, "B", 0, 3, 500)
-        B0_dbx =  dx.f0_calc(0, "B", 0, 3, 500)
-        Bf_dbx =  dx.f0_calc(0, "B", 0, 3, 500, charge=-0.045)
+        Y0_xrl = xrl.f0_calc(0, "Y", 0, 3, 50)
+        Y0_dbx =  dx.f0_calc(0, "Y", 0, 3, 50)
+        Y3_dbx =  dx.f0_calc(0, "Y", 0, 3, 50, charge=3.0)
+        B0_xrl = xrl.f0_calc(0, "B", 0, 3, 50)
+        B0_dbx =  dx.f0_calc(0, "B", 0, 3, 50)
+        Bf_dbx =  dx.f0_calc(0, "B", 0, 3, 50, charge=-0.045)
 
         if do_plot:
             plot(Y0_xrl["data"][0, :], Y0_xrl["data"][1,:],
@@ -44,6 +46,8 @@ if __name__ == "__main__":
                  legend=['Y xraylib',r'Y$^{+0}$ dabax',r'Y$^{+3}$ dabax',
                          'Y xraylib',r'B$^{+0}$ dabax',r'B$^{-0.045}$ dabax'],
                  xtitle=r'q=sin$\theta$/$\lambda$',ytitle='f$_0$ [electron units]',
+                 linestyle=["-.",None,"dashed","-.",None,""],
+                 marker=[".","None","None",'+',"None","o"],
                  show=0)
 
             plt.savefig("f0.png")
@@ -110,7 +114,7 @@ if __name__ == "__main__":
     #
     # muscovite profile
     #
-    if True:
+    if False:
 
         descriptor = 'Muscovite'
         #
@@ -208,7 +212,7 @@ if __name__ == "__main__":
     # YB66
     #
 
-    if True:
+    if False:
         descriptor = 'YB66'
         SCANFROM = 0  # in microradiants
         SCANTO = 100  # in microradiants
