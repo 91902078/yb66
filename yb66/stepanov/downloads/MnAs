@@ -1,0 +1,29 @@
+;
+;
+;=====================================================
+; MnAs crystal: data by Dillip Kumar Satapathy, Paul-Drude-Institut
+; 07/2003:
+; MnAs has NiAs-type lattice structure (space group #194 P6_3/mmc-D_{6h}^4)
+; with 2 atoms of each type in the unit cell. This is a ferromagnetic metal
+; having Tc =318 K. Above Tc it undergoes a phase transition to paramagnetic
+; state involving also a structural change to a hexagonal MnP-type lattice
+; structure (space group Pnma) with 2% volume reduction.
+; A further structural phase transition back to the NiAs-type phase is
+; observed at 398 K and it remains as paramagnetic.
+;
+; Another source: http://cst-www.nrl.navy.mil/lattice/struk/b8_1.html
+;
+; These data below are for the NiAs-type  MnAs structure below Tc.
+; ------------
+#MnAs
+ 2, 2
+; Data by Dillip Kumar Satapathy, Paul-Drude-Institut
+ 3.725, 5.713
+Mn
+ 2
+ 0.0000,  0.0000,  0.0000
+ 0.0000,  0.0000,  0.5000
+As
+ 2
+ 0.3333,  0.6667,  0.2500
+ 0.6667,  0.3333,  0.7500

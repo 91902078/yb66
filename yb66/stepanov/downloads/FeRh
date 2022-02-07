@@ -1,0 +1,18 @@
+;
+;
+;=====================================================
+; Submitted by Dr. M. Abes, Dunham University
+; FeRh (B2) Structure (CsCl) -- structure type: Pm-3m, space group #221,
+; Source:
+; http://cst-www.nrl.navy.mil/lattice/struk/b2.html
+; G. Shirane, C.W. Chen, P.A. Flinn, and R. Nathans, Phys. Rev. 131, 183 (1963)
+;  -----------
+#FeRh
+ 2, 1
+2.99
+Fe
+1
+0.,   0.,   0.
+Rh
+1
+0.5,  0.5,  0.5

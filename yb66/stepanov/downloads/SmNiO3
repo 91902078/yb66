@@ -1,0 +1,48 @@
+; Resulted material density=4.651g/cm3 deviates from declared=4.571g/cm3 by 2%
+;
+;=====================================================
+; SmNiO3
+; Source:
+; http://doi.org/10.1016/0022-4596(91)90077-U
+; https://www.sciencedirect.com/science/article/abs/pii/002245969190077U
+; Lacorre, P., Torrance, J.B., Pannetier, J., Nazzal, A.I., Wang, P.W.,
+; Huang, T.C. "Synthesis, crystal structure and properties of metallic
+; PrNiO3: comparison with metallic NdNiO3 and semiconducting SmNiO3"
+; Journal of Solid State Chemistry (1991) 91(2), 225-237.
+; -------------------------------------------------------------------------
+; Symmetry group=062:cab Pbnm,  Density=7.78g/cm3,  Z=4
+; Syngony=Orthorhombic (5)
+; Submitted by Yorick Birkholzer
+; IP=130.89.104.166 (host=eduvpn104166.mobiel.utwente.nl)
+; -------------------------------------------------------------------------
+#SmNiO3
+ 4, 5                                   ;Nr_of_components, Syngony_number (5=Orthorhombic)
+5.32830, 5.43740, 7.56750               ;Lattice_constant(s): a,b,c
+Sm                                      ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.9894, 0.0514, 0.2500
+ 0.0106, 0.9486, 0.7500
+ 0.4894, 0.4486, 0.7500
+ 0.5106, 0.5514, 0.2500
+Ni                                      ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.5000, 0.0000, 0.0000
+ 0.5000, 0.0000, 0.5000
+ 0.0000, 0.5000, 0.0000
+ 0.0000, 0.5000, 0.5000
+O                                       ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.0951, 0.4813, 0.2500
+ 0.9049, 0.5187, 0.7500
+ 0.5951, 0.0187, 0.7500
+ 0.4049, 0.9813, 0.2500
+O                                       ;Atom_name
+ 8, 1                                   ;Nr_of_positions, Occupation
+ 0.7119, 0.2890, 0.0426
+ 0.2881, 0.7110, 0.5426
+ 0.2119, 0.2110, 0.9574
+ 0.7881, 0.7890, 0.4574
+ 0.2881, 0.7110, 0.9574
+ 0.7119, 0.2890, 0.4574
+ 0.7881, 0.7890, 0.0426
+ 0.2119, 0.2110, 0.5426

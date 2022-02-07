@@ -1,0 +1,25 @@
+;
+;
+;=====================================================
+; SiC crystal (4H polytype -- ABAC stacking of SiC dimers)
+; Structure: Hexagonal     Space Group: P63mc (No 186), (Z=4)
+; Data due to Alain Declemy, Universite de Poitiers
+; ------------
+#SiC-4H
+ 2, 2
+; Bibliographical data from Alain DECLEMY:
+;3.08, 10.05
+; Bond measurements data from Alain DECLEMY:
+ 3.08, 10.085
+Si
+ 4
+ 0.,     0.,     0.
+ 0.6667, 0.3333, 0.25
+ 0.,     0.,     0.5
+ 0.3333, 0.6667, 0.75
+C
+ 4
+ 0.,     0.,     0.1875
+ 0.6667, 0.3333, 0.4375
+ 0.,     0.,     0.6875
+ 0.3333, 0.6667, 0.9375

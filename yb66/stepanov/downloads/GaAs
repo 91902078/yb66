@@ -1,0 +1,23 @@
+;
+;
+;=====================================================
+; GaAs crystal -- structure type: ZincBlende, Space Group F-43m, No.216
+; Poisson ratio from different sources (https://www.memsnet.org/material/galliumarsenidegaasbulk/)
+; 0.31 - Semiconductor Sensors,by S.M.Sze,UMC chair professor,John Wiley & Sons ,INC.Appendix D, p.535
+; ------------
+#GaAs
+ 2, 0
+  5.65321,  0.3117
+; 5.65353 -- other source
+Ga
+ 4
+ 0.00,   0.00,   0.00
+ 0.00,   0.50,   0.50
+ 0.50,   0.00,   0.50
+ 0.50,   0.50,   0.00
+As
+ 4
+ 0.25,   0.25,   0.25
+ 0.25,   0.75,   0.75
+ 0.75,   0.25,   0.75
+ 0.75,   0.75,   0.25

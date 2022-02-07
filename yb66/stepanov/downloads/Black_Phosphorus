@@ -1,0 +1,33 @@
+; Resulted material density=10.800g/cm3 deviates from declared=10.210g/cm3 by 6%;
+;
+;=====================================================
+; HfO2 - symmetry: amourphous,  density = 9.68 g/cm3
+; Submitted by Orb Acton, University of Washington
+; -----------
+;#HfO2
+; 0, 8, 9.68
+;
+;=====================================================
+; Black Phosphorus
+; Source:
+; Allan Brown & Stig Rundqvist "Refinement of the crystal structure of black phosphorus",
+; Acta Cryst. (1965), 19, 684.
+; -------------------------------------------------------------------------
+;  Symmetry group=064 Cmca,  Density=2.69g/cm3,  Z=8
+;  Syngony=Orthorhombic (5)
+; Submitted by Eric Nilsson
+;  IP=194.47.254.217 (host=maxiv-pc-465.maxiv.lu.se)
+; -------------------------------------------------------------------------
+#Black_Phosphorus
+1, 5                                   ;Nr_of_components, Syngony_number (5=Orthorhombic)
+3.3161, 10.478, 4.3763                 ;Lattice_constant(s): a,b,c
+P                                      ;Atom_name
+8, 1                                   ;Nr_of_positions, Occupation
+0.0000, 0.1017, 0.0806
+0.0000, 0.3983, 0.5806
+0.0000, 0.8983, 0.9194
+0.0000, 0.6017, 0.4194
+0.5000, 0.6017, 0.0806
+0.5000, 0.8983, 0.5806
+0.5000, 0.3983, 0.9194
+0.5000, 0.1017, 0.4194

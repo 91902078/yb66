@@ -1,0 +1,22 @@
+;
+;
+;=====================================================
+; PbTe crystal  -- structure type: RockSalt
+; Data by Eugen Wintersberger <Eugen Wintersberger>
+; also: http://www.springerlink.com/content/m75u7504h8252701/fulltext.pdf
+; -----------
+#PbTe
+ 2, 0
+  6.462
+Pb
+ 4
+ 0.,   0.,   0.
+ 0.5,  0.5,  0.
+ 0.5,  0.,   0.5
+ 0.,   0.5,  0.5
+Te
+ 4
+ 0.5 , 0.,   0.
+ 0.,   0.5,  0.
+ 0.,   0.,   0.5
+ 0.5,  0.5,  0.5

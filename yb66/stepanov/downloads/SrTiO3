@@ -1,0 +1,21 @@
+;
+;
+;=====================================================
+; SrTiO3 - symmetry: Pm3m (No 221), (z=1), rho=5.119
+; - data by Jose Santiso, Institute of Material Science of Barcelona
+; Poisson ratio may be incorrect
+;-------------------------------------
+#SrTiO3
+ 3, 0
+ 3.905,  0.3
+Sr
+ 1
+ 0.0,  0.0,  0.0
+Ti
+ 1
+ 0.5,  0.5,  0.5
+O
+ 3
+ 0.0,  0.5,  0.5
+ 0.5,  0.0,  0.5
+ 0.5,  0.5,  0.0

@@ -1,0 +1,21 @@
+;
+;=====================================================
+;  Symmetry group=099 P4mm,  Density=7.95g/cm3,  Z=1
+;  Syngony=Tetragonal (3)
+;  Source: http://www.rug.nl/research/portal/files/9818571/appendix.pdf, page 110
+; Submitted by C.A.J. de Hond, University of Twente
+; -------------------------------------------------------------------------
+#PbTiO3
+ 3, 3					;Nr_of_components, Syngony_number (3=Tetragonal)
+ 3.9045, 4.156		                ;Lattice_constants: a,c
+Pb  					;Atom_name
+ 1, 1					;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+Ti  					;Atom_name
+ 1, 1					;Nr_of_positions, Occupation
+ 0.5000, 0.5000, 0.5000
+O   					;Atom_name
+ 3, 1					;Nr_of_positions, Occupation
+ 0.5000, 0.5000, 0.0000
+ 0.5000, 0.0000, 0.5000
+ 0.0000, 0.5000, 0.5000

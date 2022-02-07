@@ -1,0 +1,23 @@
+;
+;============================================================
+; Zincite [ZnO] - symmetry: P6_{3}mc, space group #186, (Z=2)
+; -----------------------------------------------------------
+; Wurzite structure
+;
+; Structure parameters obtained from:
+; u parameters for the wurtzite structure of ZnS and ZnO using powder neutron diffraction
+; E. H. Kisi and M. M. Elcombe - Acta Crystallographica Section C, Acta Cryst. (1989). C45, 1867-1870
+;
+; Submitted by D.Novikov, DESY
+; -----------
+#Zincite
+ 2, 2
+ 3.2501, 5.2071
+Zn
+ 2
+ 0.33333,   0.66667,   0.00000
+ 0.66667,   0.33333,   0.50000
+O
+ 2
+ 0.33333,   0.66667,   0.38250
+ 0.66667,   0.33333,   0.88250

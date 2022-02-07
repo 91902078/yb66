@@ -1,0 +1,29 @@
+;
+;
+;=====================================================
+; Cubic-Zirconia [ZrO2] - symmetry: fm3m, space group #225, (Z=4)
+; Data by Aurelien Debelle, CSNSM-IN2P3
+; See also: http://dave.nrl.navy.mil/lattice/struk/c1.html
+; "Concerning cubic-zirconia, the cubic structure is stabilized by a certain
+;  amount of yttria (typically 9% mol). I believe that this will not really
+;  affect the diffusion factors, and hence could be disregarded..."
+; -------------------------------------------------------
+#ZrO2
+ 2, 0
+ 5.145
+Zr
+ 4
+ 0.0,  0.0,  0.0
+ 0.0,  0.5,  0.5
+ 0.5,  0.0,  0.5
+ 0.5,  0.5,  0.0
+O
+ 8
+ 0.25, 0.25, 0.25
+ 0.25, 0.25, 0.75
+ 0.25, 0.75, 0.25
+ 0.25, 0.75, 0.75
+ 0.75, 0.25, 0.25
+ 0.75, 0.25, 0.75
+ 0.75, 0.75, 0.25
+ 0.75, 0.75, 0.75

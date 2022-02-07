@@ -1,0 +1,27 @@
+;
+;
+;=====================================================
+;  Symmetry group=194 P63/mmc,  Density=5.17g/cm3,  Z=2
+;  Syngony=Hexagonal/Trigonal (2)
+; Submitted by Cosmin Constantin Popescu
+; References: G.Jia, L.Yang / Physica B 405 (2010) 4561-4564
+;             M.Ramzan, S.Lebegue / Phys. Status Solidi RRL 5, No. 3 (2011)
+; Resulted material density=5.293g/cm3 deviates from declared=5.170g/cm3 by 2%
+; -------------------------------------------------------------------------
+#Cr2AlC
+ 3, 2					;Nr_of_components, Syngony_number (2=Hexagonal/Trigonal)
+ 2.842, 12.825				;Lattice_constants: a,c
+Cr  					;Atom_name
+ 4, 1					;Nr_of_positions, Occupation
+ 0.3333, 0.6667, 0.0847
+ 0.6666, 0.3333, 0.5847
+ 0.6666, 0.3333, 0.9153
+ 0.3333, 0.6667, 0.4153
+Al  					;Atom_name
+ 2, 1					;Nr_of_positions, Occupation
+ 0.6667, 0.3333, 0.2500
+ 0.3334, 0.6667, 0.7500
+C   					;Atom_name
+ 2, 1					;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+ 0.0000, 0.0000, 0.5000

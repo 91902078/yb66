@@ -1,0 +1,17 @@
+;
+;
+;=====================================================
+; Bi crystal - due to Christian Blome, University of Duisburg-Essen
+; (these two descriptions correspond to the same crystal, but the
+; cell orientation is different).
+; It would be helpful to check the atomic positions with the space
+; group generator. Does anyone know what is the space groups for
+; this crystal?
+; ---------------
+#Bismuth-primitive
+ 1, 4
+ 4.746, 57.27
+Bi
+ 2
+ 0.000,  0.000,  0.000
+ 0.468,  0.468,  0.468

@@ -1,0 +1,32 @@
+;
+;
+;=====================================================
+; Paratellurite crystal (TeO2). Space group #96 (P43212), Z=4.
+; Data submitted by Oleg Kondratiev, Moscow State University
+; See also:
+; http://www.mineralienatlas.de/lexikon/index.php/MineralData?mineral=Paratellurite&lang=en&language=english
+; http://webmineral.com/data/Paratellurite.shtml
+; http://en.wikipedia.org/wiki/Tellurium_dioxide
+; Density: 5.670 g/cm3 (tetragonal) or 6.04 g/cm3 (orthorhombic). These data give 6.02 g/cm3 - same as webminerals.com.
+; Attention: may exist in other forms too! For example, P41212 (#92) according to webminerals.com
+; and orthorombic according to Wikipedia.
+; -----------------
+#Paratellurite
+  2,  3
+  4.81, 7.613
+Te
+  4
+   .0266,   .0266,   .0000
+   .9734,   .9734,   .5000
+   .4734,   .5266,   .7500
+   .5266,   .4734,   .2500
+O
+  8
+   .2579,   .1385,   .1862
+   .7421,   .8615,   .6862
+   .3615,   .7579,   .9362
+   .6385,   .2421,   .4362
+   .2421,   .6385,   .5638
+   .7579,   .3615,   .0638
+   .1385,   .2579,   .8138
+   .8615,   .7421,   .3138

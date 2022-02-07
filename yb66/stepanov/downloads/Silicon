@@ -1,0 +1,25 @@
+;
+;
+;=====================================================
+; Silicon crystal -- structure type: Diamond, Group: Fd-3m:1 (No. 227:1), Z=8
+; Poisson ratio from different sources (https://www.memsnet.org/material/siliconsibulk/)
+; 0.22 (isotropic) - Mechanics of Materials,23(1996), p.314
+; 0.27 (<111>, undopped) - Applied Surface Science,106(1996), p.433
+; 0.278 (computed) - Thin solid films 290-291(1996), p.363
+; 0.28 (for 100) - http://www.ioffe.ru/SVA/NSM/Semicond/Si/mechanic.html
+; 0.26 (for 111) - http://www.ioffe.ru/SVA/NSM/Semicond/Si/mechanic.html
+; ---------------
+#Silicon
+ 1, 0
+  5.43086,  0.28
+; 5.43105  -- other source
+Si
+ 8
+ 0.00, 0.00, 0.00,
+ 0.00, 0.50, 0.50,
+ 0.25, 0.25, 0.25,
+ 0.25, 0.75, 0.75,
+ 0.50, 0.00, 0.50,
+ 0.50, 0.50, 0.00,
+ 0.75, 0.25, 0.75,
+ 0.75, 0.75, 0.25,

@@ -1,0 +1,33 @@
+;
+;
+;=====================================================
+; Sapphire_rhomb: Al(2)O(3) - symmetry R-3c (No 167:R), (Z=2)
+; This is a Trigonal/Rhombohedral setting for Sapphire:
+;  a=b=c=5.128A, alpha=beta=gamma=55.287degr.  (expected density rho=3.97)
+;
+; Data are due to David R. Black, NIST
+; 100 Bureau DR. Stop 8523
+; Gaithersburg, MD  20899-8523
+; 301-975-5976 voice
+; 301-975-5334 FAX
+;
+; See also: H. Bialas & H.J. Stolz "Lattice Dynamics of Sapphire (Corundum)", Z. Physik B 21,319-324 (1975)
+; http://www.springerlink.com/content/m8008k747461443k/
+; -----------
+#Sapphire_rhomb
+ 2, 4
+ 5.1284, 55.287
+Al
+4
+ 0.352,  0.352,  0.352
+ 0.648,  0.648,  0.648
+ 0.852,  0.852,  0.852
+ 0.148,  0.148,  0.148
+O
+6
+ 0.556,  0.944,  0.250
+ 0.944,  0.250,  0.556
+ 0.250,  0.556,  0.944
+ 0.444,  0.056,  0.750
+ 0.056,  0.750,  0.444
+ 0.750,  0.444,  0.056

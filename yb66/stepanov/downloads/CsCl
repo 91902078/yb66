@@ -1,0 +1,24 @@
+;
+;
+;=====================================================
+; CsCl crystal  -- symmetry: P m -3 m , space group #221
+; Structure type: B2
+; Data from http://cst-www.nrl.navy.mil/lattice/struk/b2.html
+; http://www.webelements.com/webelements/compounds/text/Cs/Cl1Cs1-7647178.html
+; rho = 3.988
+;
+; Submitted by Pranaba Kishor Muduli
+; Paul-Drude-Institute for Solid State Electronics
+; Hausvogteiplatz 5-7, 10117 Berlin, Germany
+; Tel: 0049-30-20377-364,362 (Office, Lab)
+; -----------
+#CsCl
+ 2, 0
+  4.1232                ; data to match rho
+; 4.11                  ; data according to Pranaba Kishor Muduli
+Cs
+ 1
+ 0.,   0.,   0.
+Cl
+ 1
+ 0.5,  0.5,  0.5

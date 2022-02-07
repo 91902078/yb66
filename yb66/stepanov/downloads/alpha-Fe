@@ -1,0 +1,15 @@
+;
+;
+;=====================================================
+; alpha-Fe  bcc crystal structure type: I m - 3 m, space group #229
+; Source:
+; Submitted by Pranaba Kishor Muduli, Paul-Drude-Institut
+; rho=7.874
+; -----------
+#alpha-Fe
+  1, 0
+  2.8664
+Fe
+ 2
+ 0.0,  0.0,  0.0
+ 0.5,  0.5,  0.5

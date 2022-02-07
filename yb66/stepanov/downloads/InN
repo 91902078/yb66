@@ -1,0 +1,33 @@
+;
+;=====================================================
+; InN - Hexagonal: P63mc (186)
+; The atomic coordinates data are identical to those in GaN
+; The lattice parameters are taken from:
+; http://nina.ecse.rpi.edu/shur/nitride.htm
+; See also:
+; M. E. Levinshtein, S. L. Rumyantsev, and M. S. Shur, Editors,
+; John Wiley and Sons, 2001
+; "Properties of Advanced Semiconductor Materials: GaN, AlN, InN, BN, and SiGe".
+;
+; This is a Wurzite-type structure, i.e. a hexagonal analog of the
+; Zinc Blende lattice -- see:
+; http://cst-www.nrl.navy.mil/lattice/struk/b4.html
+; http://www.ioffe.rssi.ru/SVA/NSM/Semicond/GaN/basic.html
+; http://www.semiconductors.co.uk/nitrides.htm#GaN
+;
+; All the coordinates for each atom are leading and the symmetry group
+; transforms them into themselves.
+;
+; Density = 6.81 g/cm^3
+;----------------------------
+#InN
+ 2, 2
+  3.54,    5.70
+In
+2
+ 0.33333333, 0.66666667, 0.00000000
+ 0.66666667, 0.33333333, 0.50000000
+N
+2
+ 0.33333333, 0.66666667, 0.37480000
+ 0.66666667, 0.33333333, 0.87480000

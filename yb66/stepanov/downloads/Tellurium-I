@@ -1,0 +1,20 @@
+;
+;
+;=====================================================
+; Low pressure Tellurium (I) -- structure type:  P3/121, space group #152
+; Source: Adenis, Langer and Lindqvist, Acta Cryst. (1989) C45, 941-2.
+; Using a=4.456, c=5.921, x=-0.2636
+; Note:  sign of x differs from Cherlin & Unger, Acta Cryst. (1967) 23, 670.
+; Submission by: Steve Johnson, Swiss Light Source
+;   x,  0, 0.33333
+;   0,  x, 0.66667
+;  -x, -x, 0.00000
+; -----------
+#Tellurium-I
+ 1, 2
+  4.456,  5.921
+Te
+ 3
+ 0.7364, 0.0000, 0.33333
+ 0.0000, 0.7364, 0.66667
+ 0.2636, 0.2636, 0.00000

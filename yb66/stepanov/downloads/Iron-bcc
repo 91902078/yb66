@@ -1,0 +1,14 @@
+;
+;
+;=====================================================
+; Iron - symmetry Im-3m (Space group number: 229)
+; Structure:    bcc (body-centred cubic)
+; Data by Bernd Jenichen, Paul-Drude-Institut
+;-------------------------
+#Iron-bcc
+ 1, 1
+2.866
+Fe
+ 2
+ 0., 0., 0.
+ 0.5, 0.5, 0.5

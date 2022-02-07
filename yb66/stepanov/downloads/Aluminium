@@ -1,0 +1,19 @@
+;
+;
+;=====================================================
+; Aluminium
+; #225 Fm-3m
+; PDF Entry # 00-004-0787
+; Swanson, Tatge., Natl. Bur. Stand. (U.S.), Circ. 539 I, 11 (1953)
+; Submitted by Bernd Jenichen 5/2013
+; See also: http://en.wikipedia.org/wiki/Aluminium
+; -----------------------------------------------------------------
+#Aluminium
+ 1, 0
+ 4.0494, 0.3333
+Al
+ 4
+ 0.,   0.,   0.
+ 0.5,  0.5,  0.
+ 0.5,  0.,   0.5
+ 0.,   0.5,  0.5

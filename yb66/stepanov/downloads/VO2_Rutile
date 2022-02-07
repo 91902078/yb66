@@ -1,0 +1,26 @@
+;
+;=====================================================
+; VO2_Rutile
+; Source:
+; DOI: https://doi.org/10.1017/S0885715600019448
+; Rogers, K.D., "An X-ray diffraction study of semiconductor and metallic vanadium dioxide"
+; Powder Diffraction, 8, 240, (1993)
+; -------------------------------------------------------------------------
+; Symmetry group=136 P42/mnm,  Density=4.571g/cm3,  Z=2
+; Syngony=Tetragonal (3)
+; Submitted by Yorick Birkholzer
+; IP=82.72.225.226 (host=82-72-225-226.cable.dynamic.v4.ziggo.nl)
+; -------------------------------------------------------------------------
+#VO2_Rutile
+ 2, 3                                   ;Nr_of_components, Syngony_number (3=Tetragonal)
+4.554, 2.8557                           ;Lattice_constant(s): a,c
+V                                       ;Atom_name
+ 2, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+ 0.5000, 0.5000, 0.5000
+O                                       ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.2883, 0.2883, 0.0000
+ 0.2117, 0.7883, 0.5000
+ 0.7117, 0.7117, 0.0000
+ 0.7883, 0.2117, 0.5000

@@ -1,0 +1,21 @@
+;
+;
+;=====================================================
+; Germanium crystal -- structure type: Diamond, Group: Fd-3m:1 (No. 227:1), Z=8
+; Poisson ratio from different sources:
+; 0.26 (for 100, http://www.ioffe.ru/SVA/NSM/Semicond/Ge/mechanic.html)
+; -----------------
+#Germanium
+ 1, 0
+  5.65782, 0.273
+; 5.6537 -- other source
+Ge
+ 8
+ 0.00, 0.00, 0.00,
+ 0.00, 0.50, 0.50,
+ 0.25, 0.25, 0.25,
+ 0.25, 0.75, 0.75,
+ 0.50, 0.00, 0.50,
+ 0.50, 0.50, 0.00,
+ 0.75, 0.25, 0.75,
+ 0.75, 0.75, 0.25,

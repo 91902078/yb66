@@ -1,0 +1,19 @@
+;
+;
+;=====================================================
+; Auricupride (Cu3Au) crystal -- structure type: Pm3m #221
+; Source:
+; http://www.aue.auc.dk/~stoltze/cryst/221/Cu3Au/main.htm
+; http://cst-www.nrl.navy.mil/lattice/struk/l1_2.html
+; -----------
+#Cu3Au
+ 2, 0
+  3.7493,  0.333
+Au
+ 1
+ 0.,   0.,   0.
+Cu
+ 3
+ 0.5,  0.5,  0.0
+ 0.5,  0.0,  0.5
+ 0.0,  0.5,  0.5

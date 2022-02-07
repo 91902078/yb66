@@ -1,0 +1,58 @@
+;
+; Attn: although the coordinates used above approximately agree between multiple
+; sources, running them through the Nr.154 group generator from the IUCr Tables
+; produces 6 Si sites instead of 3. The second set of three Si is shifted with
+; respect to the first one by 1/3 along z-axis.
+; This is because the choice of unit cell axes differs between IUCr Tables and [1-3].
+; According to John Sutter (communication of 1/2018) Nuttall & Weil [1] and the IUCr
+; tables yield atomic positions related to each other as follows, using "N" for
+; Nuttall & Weil and "I" for IUCr:
+; a. Axis rotation about c: a1N=a3I, a2N=a1I, a3N=a2I
+; b. Change of variables: xN=-yI, yN=xI-yI  (reverse: xI=-xN+yN, yI=-xN).
+; So, if N&W and others give the initial positions of Si as (0.465, 0.000. 0.000),
+; then in the IUCr settings they should be: (-0.465, -0.465, 0.000). Applying to
+; them No.154 correctly yelds 3 Silicon positions.
+;
+;
+;=====================================================
+; CsDSO(4) - symmetry: P2/1C  (No 14), (Z=4)
+; ------------------------------------------
+#CsDSO4
+ 6, 6
+  7.789,  8.146,  7.726, 110.87
+Cs
+ 4
+ 0.78433, 0.12914, 0.79359
+ 0.21567, 0.62914, 0.70641
+ 0.21567, 0.87086, 0.20641
+ 0.78433, 0.37086, 0.29359
+S
+ 4
+ 0.2478,  0.1273,  0.7205
+ 0.7522,  0.6273,  0.7795
+ 0.7522,  0.8727,  0.2795
+ 0.2478,  0.3727,  0.2205
+O    1   2.95
+ 4
+ 0.3340,  0.0711,  0.5923
+ 0.6660,  0.5711,  0.7077
+ 0.6660,  0.9289,  0.4077
+ 0.3340,  0.4289,  0.0923
+O    1  3.59
+ 4
+ 0.4102,  0.2207,  0.8685
+ 0.5898,  0.7207,  0.6315
+ 0.5898,  0.7793,  0.1315
+ 0.4102,  0.2793,  0.3685
+O    1  3.47
+ 4
+ 0.8072,  0.0047,  0.1869
+ 0.1928,  0.5047,  0.6870
+ 0.1928,  0.9953,  0.8131
+ 0.8072,  0.4953,  0.6869
+O    1  3.12
+ 4
+ 0.1039,  0.2454,  0.6409
+ 0.8961,  0.7454,  0.8591
+ 0.8961,  0.7546,  0.3591
+ 0.1039,  0.2546,  0.1409

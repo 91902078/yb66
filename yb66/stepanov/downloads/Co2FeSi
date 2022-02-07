@@ -1,0 +1,35 @@
+;
+;
+;=====================================================
+;Co2FeSi - Cobalt Iron Silicide, structure type T_d, (space group #216, F-43m)
+; Attention: there is a controversy since some sources claim Co2FeSi be L2_1 (space group 225, Fm-3m),
+; but applying this group makes Fe and Si positions equivalent, i.e. gives 8 atoms of each on the
+; same sites. It is only possible with fully random occupation of 0.5 for both Fe and Si
+; Submitted by Bernd Jenichen 9/2011
+; For more details see B.Jenichen, J.Phys. D: Appl. Phys. 43 (2010) 285404.
+;-------------------------
+#Co2FeSi
+3, 0
+5.658, 0.333
+Co
+ 8
+ 0.00, 0.00, 0.00
+ 0.00, 0.00, 0.50
+ 0.00, 0.50, 0.00
+ 0.00, 0.50, 0.50
+ 0.50, 0.00, 0.00
+ 0.50, 0.00, 0.50
+ 0.50, 0.50, 0.00
+ 0.50, 0.50, 0.50
+Fe
+ 4
+ 0.25, 0.25, 0.75
+ 0.25, 0.75, 0.25
+ 0.75, 0.25, 0.25
+ 0.75, 0.75, 0.75
+Si
+ 4
+ 0.25, 0.25, 0.25
+ 0.25, 0.75, 0.75
+ 0.75, 0.25, 0.75
+ 0.75, 0.75, 0.25

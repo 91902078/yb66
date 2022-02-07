@@ -1,0 +1,29 @@
+;
+;
+;=====================================================
+; CoAs - symmetry: Pbnm, space group #62 MnP-type (B31)
+; source:
+; R. W. G. Wyckoff, Crstal structures vol.1 (John Wiley & Sons, New
+; York, 1963) p127.
+; The structure is due to Masahiko Hashimoto, Paul-Drude-Institut
+; ATTENTION: the DB file group.x0h contains data for the Pnma setting
+;            of space group #62. If one wants to use the Pnma setting,
+;            then the coordinates and lattice constants must be
+;            transformed as: Pnma (a, b, c) = Pbnm (c, a, b)
+; -------------------------------------------------------
+#CoAs
+2, 5
+; 0.5869, 0.5292, 0.3458
+5.869, 5.292, 3.458
+Co
+4
+0.25, 0,   0.25
+0.75, 0,   0.75
+0.25, 0.5, 0.25
+0.75, 0.5, 0.75
+As
+4
+0.6, 0.25, 0.25
+0.4, 0.75, 0.75
+0.9, 0.75, 0.25
+0.1, 0.25, 0.75

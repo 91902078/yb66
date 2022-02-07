@@ -1,0 +1,24 @@
+;
+;
+;=====================================================
+; Magnesium oxide (MgO) crystal -- structure type: Fm-3m, space group #225,
+; Source:
+; http://cst-www.nrl.navy.mil/lattice/struk/sc.html
+; http://www.espi-metals.com/tech/magnesiumoxide.pdf
+; Submitted by Dr. M. Abes, Dunham University
+; -----------
+#MgO
+  2,  1
+  4.212
+Mg
+  4
+   0.0,   0.0,   0.0
+   0.0,   0.5,   0.5
+   0.5,   0.0,   0.5
+   0.5,   0.5,   0.0
+O
+  4
+   0.5,   0.5,   0.5
+   0.5,   0.0,   0.0
+   0.0,   0.5,   0.0
+   0.0,   0.0,   0.5

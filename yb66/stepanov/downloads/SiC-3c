@@ -1,0 +1,23 @@
+;
+;
+;=====================================================
+; SiC-3C crystal. ZincBlende structure, Space Group F-43m, No.216
+; Data by Alexander Levin, TU Dresden
+; See also: http://www.ioffe.ru/SVA/NSM/Semicond/SiC/basic.html
+;
+#SiC-3c
+ 2, 0
+4.358,  0.3
+; 4.3596 -- according to ioffe.ru
+Si
+ 4
+ 0.00,   0.00,   0.00
+ 0.00,   0.50,   0.50
+ 0.50,   0.00,   0.50
+ 0.50,   0.50,   0.00
+C
+ 4
+ 0.25,   0.25,   0.25
+ 0.25,   0.75,   0.75
+ 0.75,   0.25,   0.75
+ 0.75,   0.75,   0.25

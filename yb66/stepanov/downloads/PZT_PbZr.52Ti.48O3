@@ -1,0 +1,26 @@
+;
+;
+;=====================================================
+; PZT (PbZr0.52Ti0.48O3) crystal -- structure type: P4mm, space group #99,
+; Source:
+; B. Noheda, et al. Phys. Rev. B 61, 8687 (2000).
+; http://cst-www.nrl.navy.mil/lattice/struk/pzt_t.html
+; Submitted by Dr. Jeremy Johnson, Paul Scherrer Institut
+; -----------
+#PZT_PbZr.52Ti.48O3
+  4,  3
+  5.722, 4.139
+Pb
+  1
+   .0000,   .0000,   .0000
+Zr
+  1, 0.52
+   .5000,   .5000,   .4517
+Ti
+  1, 0.48
+   .5000,   .5000,   .4517
+O
+  3
+   .5000,   .5000,   .8973
+   .5000,   .0000,   .3785
+   .0000,   .5000,   .3785

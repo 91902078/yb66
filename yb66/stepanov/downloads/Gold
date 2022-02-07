@@ -1,0 +1,22 @@
+;
+;
+;=====================================================
+; Gold (Au) crystal -- structure type: Fm-3m, space group #225 (Z=1)
+; Source:
+; http://www.webelements.com/webelements/elements/text/Au/key.html
+; Submission by Justin Wark, University of Oxford
+;
+; See also:
+; http://cst-www.nrl.navy.mil/lattice/struk/a1.html
+; http://people.eku.edu/tofand/projects/periodictable/pdf/Gold.pdf
+; Density: 19.3 g/cm3
+; -----------
+#Gold
+ 1, 1
+ 4.0782,  0.44
+Au
+ 4
+ 0.0,  0.0,  0.0
+ 0.0,  0.5,  0.5
+ 0.5,  0.0,  0.5
+ 0.5,  0.5,  0.0

@@ -1,0 +1,21 @@
+; Resulted material density=4.997g/cm3 deviates from declared=5.060g/cm3 by 1%
+;
+;=====================================================
+;  Symmetry group=136 P42/mnm,  Density=7.01g/cm3,  Z=2
+;  Syngony=Tetragonal (3)
+; Submitted by Hugo Mandar, University of Tartu
+;  Source: H.Seki et al, J.Ceram.Assoc.Jap., 1084, 92, p.219-223.
+; -------------------------------------------------------------------------
+#SnO2_Cassiterite
+ 2, 3                                   ;Nr_of_components, Syngony_number (3=Tetragonal)
+4.7358, 3.1851                          ;Lattice_constant(s): a,c
+Sn                                      ;Atom_name
+ 2, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+ 0.5000, 0.5000, 0.5000
+O                                       ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.3053, 0.3053, 0.0000
+ 0.6947, 0.6947, 0.0000
+ 0.1947, 0.8053, 0.5000
+ 0.8053, 0.1947, 0.5000

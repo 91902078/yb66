@@ -1,0 +1,23 @@
+;
+;
+;=====================================================
+; PbSe crystal  -- structure type: RockSalt
+; Data by Eugen Wintersberger <Eugen Wintersberger>
+; also: http://www.springerlink.com/content/gj28827278g50262/fulltext.pdf
+; -----------
+#PbSe
+ 2, 0
+  6.117
+; 6.124         ; at T=299K and below -- see the Springer link.
+Pb
+ 4
+ 0.,   0.,   0.
+ 0.5,  0.5,  0.
+ 0.5,  0.,   0.5
+ 0.,   0.5,  0.5
+Se
+ 4
+ 0.5 , 0.,   0.
+ 0.,   0.5,  0.
+ 0.,   0.,   0.5
+ 0.5,  0.5,  0.5

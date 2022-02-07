@@ -1,0 +1,35 @@
+; Resulted material density=6.631g/cm3 deviates from declared=6.640g/cm3 by 0%
+;
+;=====================================================
+;  Symmetry group=121 I-42m,  Density=5.69g/cm3,  Z=2
+;  Syngony=Tetragonal (3)
+; Submitted by Hitoshi Tampo
+;  National Institute of Advanced Science and Technology, Japan
+; -------------------------------------------------------------------------
+#Cu2ZnSnSe4
+ 4, 3                                   ;Nr_of_components, Syngony_number (3=Tetragonal)
+5.681, 11.34                            ;Lattice_constant(s): a,c
+Se                                      ;Atom_name
+ 8, 1                                   ;Nr_of_positions, Occupation
+ 0.2449, 0.2449, 0.1298
+ 0.2449, 0.7551, 0.8702
+ 0.7551, 0.7551, 0.1298
+ 0.7551, 0.2449, 0.8702
+ 0.7449, 0.7449, 0.6298
+ 0.7449, 0.2551, 0.3702
+ 0.2551, 0.2551, 0.6298
+ 0.2551, 0.7449, 0.3702
+Cu                                      ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.5000, 0.2500
+ 0.5000, 0.0000, 0.7500
+ 0.0000, 0.5000, 0.7500
+ 0.5000, 0.0000, 0.2500
+Sn                                      ;Atom_name
+ 2, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.5000
+ 0.5000, 0.5000, 0.0000
+Zn                                      ;Atom_name
+ 2, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+ 0.5000, 0.5000, 0.5000

@@ -1,0 +1,17 @@
+;
+;
+;=====================================================
+; Copper crystal -- structure type: fcc
+; ---------------
+#Copper
+ 1, 0
+; Poisson ratio is very approximate!!
+; 3.61,   0.3
+; Data by Samantha Warren, ESRF
+  3.6150, 0.3
+Cu
+ 4
+ 0.,   0.,   0.
+ 0.5,  0.5,  0.
+ 0.5,  0.,   0.5
+ 0.,   0.5,  0.5

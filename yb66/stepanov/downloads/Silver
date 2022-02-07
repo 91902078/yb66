@@ -1,0 +1,18 @@
+;
+;
+;=====================================================
+; Silver (Ag) crystal -- structure type: Fm3m, space group #225 (Z=1)
+; Source:
+; http://www.webelements.com/webelements/elements/text/Ag/key.html
+; http://www.periodni.com/en/ag.html
+; Submission by Justin Wark, University of Oxford
+; -----------
+#Silver
+ 1, 0
+ 4.0853,  0.37
+Ag
+ 4
+ 0.0,  0.0,  0.0
+ 0.5,  0.5,  0.0
+ 0.5,  0.0,  0.5
+ 0.0,  0.5,  0.5

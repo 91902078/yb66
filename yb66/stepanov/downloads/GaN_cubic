@@ -1,0 +1,27 @@
+;
+;=====================================================
+; GaN - Cubic: F-43m  (216)
+; This is a cubic (Zinc-Blende)-type modification of GaN that is
+; considered to be unstable -- see:
+; http://cst-www.nrl.navy.mil/lattice/struk/b3.html
+; http://www.ioffe.rssi.ru/SVA/NSM/Semicond/GaN/basic.html
+; http://www.semiconductors.co.uk/nitrides.htm#GaN
+;
+; Only the 1st coordinate for each atom is leading and the rest 3 are
+; produced by the symmetry group transformations.
+;----------------------------
+#GaN_cubic
+ 2, 0
+  4.52
+Ga
+4
+ 0.00,   0.00,   0.00
+ 0.00,   0.50,   0.50
+ 0.50,   0.00,   0.50
+ 0.50,   0.50,   0.00
+N
+4
+ 0.25,   0.25,   0.25
+ 0.25,   0.75,   0.75
+ 0.75,   0.25,   0.75
+ 0.75,   0.75,   0.25

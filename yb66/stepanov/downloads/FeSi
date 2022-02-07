@@ -1,0 +1,23 @@
+;
+;
+;=====================================================
+; FeSi crystal  -- symmetry: P m -3 m , space group #221
+; Structure type: B2 (same structure as CsCl)
+; Lattice parameter from:
+; http://ceaspub.eas.asu.edu/cms/papers/prb_55_R16065_1997.pdf
+; J. J. Hinarejos, G. R. Castro, P. Segovia, J. Alvarez, E. G. Michel,
+; R. Miranda, A. Rodriguez-Marco, D. Sanchez-Portal, E. Artacho,
+; F. Yndurain, S. H. Yang, P. Ordejon, J. B. Adams
+; "Surface electronic structure of metastable FeSi(CsCl)(111) epitaxially
+; grown on Si(111)"
+; PRB VOLUME 55, NUMBER 24 PAGES R16065-R16068, 1997-II.
+; -----------
+#FeSi
+ 2, 0
+  2.77
+Fe
+ 1
+ 0.,   0.,   0.
+Si
+ 1
+ 0.5,  0.5,  0.5

@@ -1,0 +1,22 @@
+;
+;
+;=====================================================
+; Rutile (TiO2) crystal -- structure type: P42/mnm, space group #136, (Z=1)
+; Source:
+; http://ruby.colorado.edu/~smyth/min/rutile.html
+; http://cst-www.nrl.navy.mil/lattice/struk/c4.html
+; Submitted by Martin Tolkiehn, DIAMOND
+; -----------
+#Rutile
+ 2, 3
+  4.5845, 2.9533
+Ti
+ 2
+ 0.,   0.,   0.
+ 0.5   0.5   0.5
+O
+ 4
+ 0.198127,  0.801873,  0.5
+ 0.301873,  0.301873,  0.0
+ 0.698127,  0.698127,  0.0
+ 0.801873,  0.198127,  0.5

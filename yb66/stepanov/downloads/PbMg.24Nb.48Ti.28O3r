@@ -1,0 +1,31 @@
+;
+;
+;=====================================================
+; PMN-0.28PT, structure type: rhombohedral R3m, space group 160:R (R3m:R),
+; Source: A. A. Levin, Appl. Phys. A 84 (1-2), 37-45 (2006)
+; Submitted by Ines Pommrich, DLR
+; November 16, 2006
+; NOTE: this group could also be described in 160:H settings - hard to comp. to prev.one
+;
+;0.72[Pb(Mg0.33Nb0.67)O3]-0.28PbTiO3
+; -----------------
+#PbMg.24Nb.48Ti.28O3r
+5, 4
+4.0227, 98.900
+Pb
+  1, 1.000
+   .0000,   .0000,   .0000
+Ti
+  1, 0.28
+   .5290,   .5290,   .5290
+Nb
+  1, 0.48
+   .5290,   .5290,   .5290
+Mg
+  1, 0.24
+   .5290,   .5290,   .5290
+O
+  3, 1.000
+   .5444,   .5444,   .0350
+   .0350,   .5444,   .5444
+   .5444,   .0350,   .5444

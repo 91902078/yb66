@@ -1,0 +1,15 @@
+;
+;
+;=====================================================
+; Tantalum (Ta) crystal -- structure type: Im3m, space group #229 (Z=1)
+; Source:
+; http://www.webelements.com/webelements/elements/text/Ta/xtal.html
+; Submission by Justin Wark, University of Oxford
+; -----------
+#Tantalum
+ 1, 0
+  3.3013,  0.34
+Ta
+  2
+ 0.0,  0.0,  0.0
+ 0.5,  0.5,  0.5

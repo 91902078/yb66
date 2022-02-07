@@ -1,0 +1,21 @@
+;
+;
+;=====================================================
+; Ruthenium oxide crystal
+; Symmetry group=136 P42/mnm,  Density=7.09g/cm3,  Z=2
+; Syngony=Tetragonal (3)
+; Submitted by Yang Wang, ORNL
+; -------------------------------------------------------------------------
+#RuO2
+2, 3				;Nr_of_components, Syngony_number (3=Tetragonal)
+4.480, 3.105			;Lattice_constants: a,c
+Ru  				;Atom_name
+2, 1				;Nr_of_positions, Occupation
+0.0000, 0.0000, 0.0000
+0.5000, 0.5000, 0.5000
+O				;Atom_name
+4, 1				;Nr_of_positions, Occupation
+0.3048, 0.3048, 0.0000
+0.1952, 0.8048, 0.5000
+0.6952, 0.6952, 0.0000
+0.8048, 0.1952, 0.5000

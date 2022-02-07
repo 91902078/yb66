@@ -1,0 +1,15 @@
+;
+;
+;=====================================================
+; Tungsten crystal, structure type:Im-3m, space group #229
+; Density: 19.3 g/cm3
+; Poisson Ratio: 0.28
+; Data by Adriana Rueda, University of Mainz
+; -----------------
+#Tungsten
+ 1, 0
+  3.16, 0.28
+W
+ 2
+ 0.0,  0.0,  0.0
+ 0.5,  0.5,  0.5

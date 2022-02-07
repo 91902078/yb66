@@ -1,0 +1,16 @@
+;
+;=====================================================
+; C22H10N205 [C(22)H(10)N(2)O(5)] - symmetry: amourphous,  density = 1.43g/cm^3
+;  Taken from http://sector7.xor.aps.anl.gov/~dufresne/UofM/techinfo/kapton.html
+; (could also be calculated by the filter module of XOP)
+; -----------
+#Kapton
+ 4, 8, 1.43
+C
+ 22
+H
+ 10
+N
+ 2
+O
+5

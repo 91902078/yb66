@@ -1,0 +1,16 @@
+;
+;
+;=====================================================
+; Nickel crystal -- structure type: fcc
+; ---------------
+; Data by Samantha Warren, ESRF
+#Nickel
+ 1, 0
+; Poisson ratio is very approximate!!
+  3.5239, 0.3
+Ni
+ 4
+ 0.,   0.,   0.
+ 0.5,  0.5,  0.
+ 0.5,  0.,   0.5
+ 0.,   0.5,  0.5

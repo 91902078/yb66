@@ -1,0 +1,28 @@
+; Resulted material density=2.706g/cm3 deviates from declared=2.690g/cm3 by 1%
+;
+;=====================================================
+; GdSb
+; Source:
+; Li, D. X., et al. "Magnetic properties of stoichiometric Gd monopnictides"
+; Journal of Physics: Condensed Matter, 9.48, (1997), 10777.
+; -------------------------------------------------------------------------
+;  Symmetry group=225 Fm-3m,  Density=7.7049g/cm3,  Z=4
+;  Syngony=Cubic (1)
+; Submitted by Hadass Inbar
+;  IP=128.111.61.35 (host=128-111-61-35.vpn.ucsb.edu)
+; -------------------------------------------------------------------------
+#GdSb
+ 2, 1                                   ;Nr_of_components, Syngony_number (1=Cubic)
+6.219                                   ;Lattice_constant(s): a
+Gd                                      ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+ 0.0000, 0.5000, 0.5000
+ 0.5000, 0.0000, 0.5000
+ 0.5000, 0.5000, 0.0000
+Sb                                      ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.5000
+ 0.0000, 0.5000, 0.0000
+ 0.5000, 0.0000, 0.0000
+ 0.5000, 0.5000, 0.5000

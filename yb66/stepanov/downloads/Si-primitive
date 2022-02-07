@@ -1,0 +1,12 @@
+;
+;=====================================================
+;  Symmetry group=195 P23,  Density=2.38g/cm3,  Z=1
+;  Syngony=Cubic (1)
+; Submitted by Bernd Jenichen, Paul-Drude-Institut
+; -------------------------------------------------------------------------
+#Si-primitive
+ 1, 1                                   ;Nr_of_components, Syngony_number (1=Cubic)
+2.696                                   ;Lattice_constant(s): a
+Si                                      ;Atom_name
+ 1, 1                                   ;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000

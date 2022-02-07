@@ -1,0 +1,27 @@
+;
+;=====================================================
+; Diamond crystal -- structure type: Diamond, Group: Fd-3m:1 (No. 227:1), Z=8
+; Poisson's ratio from different sources:
+; 0.2 - http://www.chm.bris.ac.uk/motm/diamond/diamprop.htm
+; 0.17+-0.03 - Sungwoo Cho et al 2005 J. Micromech. Microeng. 15 728
+; 0.115 in the [011]/[100] geometry and 0.00786 in the [011]/[110]
+; - Materials Research Bulletin 27(12), 1992, p.1407-1414
+; Lattice contant changed 2017/12 from 3.559 to 3.5668 per suggestion by
+; Hendrik Bernhardt
+; a=3.5668  http://www.semiconductors.co.uk/propiviv5431.htm
+; a=3.567   https://en.wikipedia.org/wiki/Lattice_constant
+; a=3.56683 http://7id.xray.aps.anl.gov/calculators/crystal_lattice_parameters.html
+; ---------------
+#Diamond
+ 1, 0
+  3.5668, 0.2
+C
+ 8
+ 0.00, 0.00, 0.00,
+ 0.00, 0.50, 0.50,
+ 0.25, 0.25, 0.25,
+ 0.25, 0.75, 0.75,
+ 0.50, 0.00, 0.50,
+ 0.50, 0.50, 0.00,
+ 0.75, 0.25, 0.75,
+ 0.75, 0.75, 0.25,

@@ -1,0 +1,15 @@
+;
+;=====================================================
+; Co60Fe20B20 [Co(60)Fe(20)B(20)] - symmetry: amourphous,  density = 0.7406g/cm^3
+; Submitted by Graham Anderson, University of Leeds,
+; -----------
+; This works too:
+;#Co60Fe20B20
+; 0, 8, 0.7406
+;
+;=====================================================
+; C18H39O3P - symmetry: amourphous,  density = 0.969 g/cm3
+; Submitted by Orb Acton, University of Washington
+; -----------
+#C18H39O3P
+ 0, 8, 0.969

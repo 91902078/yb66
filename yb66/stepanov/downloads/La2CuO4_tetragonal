@@ -1,0 +1,31 @@
+;
+;=====================================================
+;  Symmetry group=139 I4/mmm,  Density=6.883g/cm3,  Z=2
+;  Syngony=Tetragonal (3)
+; Submitted by Arturas Vailionis
+; -------------------------------------------------------------------------
+#La2CuO4_tetragonal
+ 4, 3					;Nr_of_components, Syngony_number (3=Tetragonal)
+ 3.833, 13.313				;Lattice_constants: a,c
+La  					;Atom_name
+ 4, 1					;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.3605
+ 0.0000, 0.0000, 0.6395
+ 0.5000, 0.5000, 0.8605
+ 0.5000, 0.5000, 0.1395
+Cu  					;Atom_name
+ 2, 1					;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+ 0.5000, 0.5000, 0.5000
+O   					;Atom_name
+ 4, 1					;Nr_of_positions, Occupation
+ 0.0000, 0.5000, 0.0000
+ 0.5000, 0.0000, 0.0000
+ 0.5000, 0.0000, 0.5000
+ 0.0000, 0.5000, 0.5000
+O   					;Atom_name
+ 4, 1					;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.1710
+ 0.0000, 0.0000, 0.8290
+ 0.5000, 0.5000, 0.6710
+ 0.5000, 0.5000, 0.3290

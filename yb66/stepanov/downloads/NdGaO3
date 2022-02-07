@@ -1,0 +1,37 @@
+;
+;
+;=====================================================
+;  Symmetry group=062:cab Pbnm,  Density=7.54g/cm3,  Z=4
+;  Syngony=Orthorhombic (5)
+;  Springer Materials: http://materials.springer.com/isp/crystallographic/docs/sd_1003113
+; Submitted by Kristoffer Kjaernes
+; -------------------------------------------------------------------------
+#NdGaO3
+ 3, 5					;Nr_of_components, Syngony_number (5=Orthorhombic)
+ 5.43320, 5.50340, 7.71550		;Lattice_constants: a,b,c
+Nd  					;Atom_name
+ 4, 1					;Nr_of_positions, Occupation
+ 0.0094, 0.4579, 0.2500
+ 0.9906, 0.5421, 0.7500
+ 0.5094, 0.0421, 0.7500
+ 0.4906, 0.9579, 0.2500
+Ga  					;Atom_name
+ 4, 1					;Nr_of_positions, Occupation
+ 0.0000, 0.0000, 0.0000
+ 0.0000, 0.0000, 0.5000
+ 0.5000, 0.5000, 0.0000
+ 0.5000, 0.5000, 0.5000
+O   					;Atom_name
+ 12, 1					;Nr_of_positions, Occupation
+ 0.2905, 0.2081, 0.0431
+ 0.7095, 0.7919, 0.5431
+ 0.7905, 0.2919, 0.9569
+ 0.2095, 0.7081, 0.4569
+ 0.7095, 0.7919, 0.9569
+ 0.2905, 0.2081, 0.4569
+ 0.2095, 0.7081, 0.0431
+ 0.7905, 0.2919, 0.5431
+ 0.5829, 0.5180, 0.2500
+ 0.4171, 0.4820, 0.7500
+ 0.0829, 0.9820, 0.7500
+ 0.9171, 0.0180, 0.2500

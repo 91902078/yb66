@@ -1,0 +1,32 @@
+;
+;
+;=====================================================
+; SiC crystal (6H polytype -- ABCACB stacking of SiC dimers)
+; Structure: Hexagonal     Space Group: P63mc (No 186), (Z=6)
+; Data due to Alain Declemy, Universite de Poitiers
+; --- the data was modified on 2003/04/08 from c=5.1 to c=5.12:
+; "Last experiments following the Bond's method on our 6H-SiC
+; samples show lattice parameters a=3.08 A and c=15.12 A, what
+; is in very good agreement with recent published results
+; (J.K. Jeong et al. / Thin Solid Film 377-378 (2000) 567-572,
+; Table 1 p. 570)."
+; ------------
+#SiC-6H
+ 2, 2
+ 3.08, 15.12
+Si
+ 6
+ 0.,      0.,     0.
+ 0.6667,  0.3333, 0.1667
+ 0.3333,  0.6667, 0.3333
+ 0.,      0.,     0.5
+ 0.3333,  0.6667, 0.6667
+ 0.6667,  0.3333, 0.8333
+C
+ 6
+ 0.,      0.,     0.125
+ 0.6667,  0.3333, 0.2917
+ 0.3333,  0.6667, 0.4583
+ 0.,      0.,     0.625
+ 0.3333,  0.6667, 0.7917
+ 0.6667,  0.3333, 0.9583

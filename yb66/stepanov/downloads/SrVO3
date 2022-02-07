@@ -1,0 +1,27 @@
+;
+;
+;=====================================================
+; Strontium vanadate (SrVO3) crystal -- structure type: Pm3m, space group #221, (Z=1)
+; Sources:
+; CIF file "SrVO3_Pm-3m_DC244.cif" at http://www.crystallography.net/
+; M.J. Rey, P. Dehaudt, J.C. Joubert, B. Lambert Andron, M. Cyrot, F. Cyrot-Lackmann
+; "Preparation and structure of the compounds Sr V O3 and Sr2 V O4"
+; Journal of Solid State Chemistry, 86 (1990) 101-108.
+; Submitted by Arnaud Fouchet, University of Versailles Saint-Quentin-en-Yvelines
+; ATTENTION: data below is resulted in rho=5.4673. I could not find another
+; source to check if it is correct.
+;-------------------------------------
+#SrVO3
+ 3, 0
+  3.8409,  0.35
+Sr
+ 1
+ 0.0,  0.0,  0.0
+V
+ 1
+ 0.5,  0.5,  0.5
+O
+ 3
+ 0.5,  0.5,  0.0
+ 0.5,  0.0,  0.5
+ 0.0,  0.5,  0.5

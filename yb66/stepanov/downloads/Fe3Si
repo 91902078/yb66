@@ -1,0 +1,41 @@
+;
+;
+;=====================================================
+; Fe3Si - symmetry: F m -3 m , space group #225, Z=4
+; -------------------------------------------------------
+; DO_3 crystal structure
+; Data from Landolt-Boernstein New Series III/19c
+; Springer, Berlin, 1988, p. 75-104
+; Submitted by Pranaba Kishor Muduli, Paul-Drude-Institut
+; rho = 7.08
+; The structure is equivalent to AlFe3 that has 3 types of nodes:
+;   Al,  0,    0,   0
+;   Fe1, 1/2, 1/2, 1/2
+;   Fe2, 1/4, 1/4, 1/4
+; -- see http://cimesg1.epfl.ch/CIOLS/crystal1.pl
+; The rest of the coordinates are produced by the space group symmetry.
+; -----------
+#Fe3Si
+ 2, 0
+;5.6538 - Berndt Jenichen data
+ 5.653
+Si
+4
+   0.0, 0.0, 0.0
+   0.0, 0.5, 0.5
+   0.5, 0.0, 0.5
+   0.5, 0.5, 0.0
+Fe
+12
+   0.5,  0.5,  0.5
+   0.0,  0.0,  0.5
+   0.0,  0.5,  0.0
+   0.5,  0.0,  0.0
+   0.25, 0.25, 0.25
+   0.25, 0.25, 0.75
+   0.25, 0.75, 0.25
+   0.25, 0.75, 0.75
+   0.75, 0.25, 0.25
+   0.75, 0.25, 0.75
+   0.75, 0.75, 0.25
+   0.75, 0.75, 0.75

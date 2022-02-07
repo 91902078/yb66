@@ -1,0 +1,22 @@
+; Resulted material density=5.961g/cm3 deviates from declared=5.880g/cm3 by 1%;
+;
+;=====================================================
+;  Symmetry group=194 P63/mmc,  Density=5.06g/cm3,  Z=2
+;  Syngony=Hexagonal/Trigonal (2)
+; Submitted by Alexander Gerlach
+;  Source: Acta Crystallographica B39 (1983) 404-407
+;  See also: https://en.wikipedia.org/wiki/Molybdenite
+; -------------------------------------------------------------------------
+#Molybdenite
+ 2, 2                                   ;Nr_of_components, Syngony_number (2=Hexagonal/Trigonal)
+3.161, 12.295                           ;Lattice_constant(s): a,c
+Mo                                      ;Atom_name
+ 2, 1                                   ;Nr_of_positions, Occupation
+ 0.3333, 0.6667, 0.2500
+ 0.6666, 0.3333, 0.7500
+S                                       ;Atom_name
+ 4, 1                                   ;Nr_of_positions, Occupation
+ 0.3333, 0.6667, 0.6275
+ 0.6666, 0.3333, 0.1275
+ 0.6666, 0.3333, 0.3725
+ 0.3333, 0.6667, 0.8725
