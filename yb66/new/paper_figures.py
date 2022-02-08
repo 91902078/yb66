@@ -19,9 +19,11 @@ if __name__ == "__main__":
     xrl = XraylibDecorated()
     dx = DabaxDecorated()
 
+    print(dx.info())
+
     do_plot = 1
 
-    if False:
+    if True:
         #
         # f0
         #
@@ -114,7 +116,7 @@ if __name__ == "__main__":
     #
     # muscovite profile
     #
-    if False:
+    if True:
 
         descriptor = 'Muscovite'
         #
@@ -212,7 +214,7 @@ if __name__ == "__main__":
     # YB66
     #
 
-    if False:
+    if True:
         descriptor = 'YB66'
         SCANFROM = 0  # in microradiants
         SCANTO = 100  # in microradiants

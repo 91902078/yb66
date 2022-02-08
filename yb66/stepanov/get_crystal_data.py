@@ -79,6 +79,8 @@ def get_cell(Syngony_number, line):
 
 def get_crystal_data(filename, verbose=0):
 
+    # see https://x-server.gmca.aps.anl.gov/structure_submission_example.html
+
     if verbose: print(">>>>> file: ", filename)
 
     f = open(filename, 'r')
@@ -95,26 +97,27 @@ def get_crystal_data(filename, verbose=0):
     fractions = []
     COORDINATES = []
     name = ""
+    a,b,c,alpha,beta,gamma = 0,0,0,0,0,0
 
     is_header = 1
+
     for i in range(nlines):
         line = lines[i]
-        if line[0] == ";":
-            if is_header:
-                header.append(line)
-            else:
-                comments.append(line)
-        if line[0] == "#":
-            istart = i
-            name = line[1:]
-            is_header = 0
-
-    iend = i
+        if len(line) > 0:
+            if line[0] == ";":
+                if is_header:
+                    header.append(line)
+                else:
+                    comments.append(line)
+            if line[0] == "#":
+                istart = i
+                name = line[1:]
+                is_header = 0
 
     #
     # get name and dimensions
     #
-    if line[istart+1][0] == ";":
+    if lines[istart+1][0] == ";":
         itmp = istart + 2
     else:
         itmp = istart + 1
@@ -130,46 +133,62 @@ def get_crystal_data(filename, verbose=0):
 
     if verbose: print(">>>Nr_of_components, Syngony_number, rho: ", Nr_of_components, Syngony_number, rho)
 
-    # get a,b,c,alpha,beta,gamma
-    istart = itmp + 1
-    a,b,c,alpha,beta,gamma = get_cell(Syngony_number, lines[istart])
+    if (Nr_of_components > 0):
+        # get a,b,c,alpha,beta,gamma
+
+        if Syngony_number < 8:
+            istart = itmp + 1
+            while lines[istart][0] == ";":
+                istart += 1
+            a,b,c,alpha,beta,gamma = get_cell(Syngony_number, lines[istart])
 
 
 
-    lines_without_comments = []
-    for i,line in enumerate(lines):
-        if i > istart and line[0] != ";":
-            lines_without_comments.append(line)
+        lines_without_comments = []
+        for i,line in enumerate(lines):
+            if i > istart and line[0] != ";":
+                lines_without_comments.append(line)
 
 
-    istart = 0
-    while istart >= 0:
-        try:
-            if verbose: print(">>>> line SYMBOL: ", lines_without_comments[istart])
-            symbols.append(lines_without_comments[istart])
-            if verbose: print(">>>> line NATOM: ", lines_without_comments[istart+1])
-            var = __parse_line(lines_without_comments[istart+1], remove=[","])
-            natoms.append(int(var[0]))
-            if len(var) == 2:
-                fractions.append(float(var[1]))
-            else:
-                fractions.append(1.0)
-            istart = istart+2
-            coordinates = []
-            for i in range(natoms[-1]):
-                coordinates.append(lines_without_comments[istart+i])
-            COORDINATES.append(coordinates)
+        istart = 0
+        while istart >= 0:
+            try:
+                if verbose: print(">>>> line SYMBOL: ", lines_without_comments[istart])
+                symbol = (lines_without_comments[istart][0:2]).strip()
+                if len(symbol) == 2:
+                    if symbol[1] == "-":
+                        symbol = symbol[0]
+                # symbol = lines_without_comments[istart]
+                # if symbol.find(";") > 0:
+                #     symbol = symbol[:symbol.find(";")].strip()
+                if verbose: print(">>>> SYMBOL: ", symbol)
+                symbols.append(symbol)
+                if verbose: print(">>>> line NATOM: ", lines_without_comments[istart+1])
+                var = __parse_line(lines_without_comments[istart+1], remove=[","])
+                natoms.append(int(var[0]))
+                if len(var) == 2:
+                    fractions.append(float(var[1]))
+                else:
+                    fractions.append(1.0)
+                istart = istart+2
+                coordinates = []
+                for i in range(natoms[-1]):
+                    coordinates.append(lines_without_comments[istart+i])
+                COORDINATES.append(coordinates)
 
-            istart += natoms[-1]
-        except:
-            istart = -1
-        # variables = __parse_line(lines[line_index])
+                istart += natoms[-1]
+            except:
+                istart = -1
+            # variables = __parse_line(lines[line_index])
 
     return {"name":name,
             "header":header,
             "symbols":symbols,
             "natoms":natoms,
             "fractions":fractions,
+            "Nr_of_components":Nr_of_components,
+            "Syngony_number":Syngony_number,
+            "rho":rho,
             "COORDINATES":COORDINATES,
             "a":a, "b":b, "c":c, "alpha":alpha, "beta":beta, "gamma":gamma}
 
@@ -192,7 +211,7 @@ def add_crystal(out, filename):
 13 1.00    0.2484  0.0871  0.0016
     """
     f = open(filename,'a')
-    f.write("#S %d %s\n" % (atomic_number(out["symbols"][0]), out["name"]))
+    f.write("\n#S %d %s\n" % (atomic_number(out["symbols"][0]), out["name"]))
     f.write("#UCELL %g  %g  %g  %g  %g  %g\n" % (
         out["a"],
         out["b"],
@@ -201,6 +220,7 @@ def add_crystal(out, filename):
         out["beta"],
         out["gamma"],
     ))
+    f.write("#UCOMMENT: data URL: https://x-server.gmca.aps.anl.gov/cgi/x0h_dump.pl?code=%s\n" % out["name"])
     for line in out["header"]:
         f.write("#UCOMMENT %s\n" % line)
 
@@ -211,6 +231,39 @@ def add_crystal(out, filename):
     f.close()
     print(">>>> added to file: ", filename)
 
+def add_header(filename):
+    txt = """#F Crystals_xrayserver.dat
+#UT Crystals_xrayserver: Crystal structures with atomic coordinates in unit cell and cell dimensions
+#UIDL xfh
+#UD
+#UD  This file contains the list of crystals available Sergey Stepanov's X-Ray Server
+#UD  https://x-server.gmca.aps.anl.gov/
+#UD S. Stepanov, "X-ray server: an online resource for simulations of X-ray diffraction and scattering".
+#UD In: "Advances in Computational Methods for X-ray and Neutron Optics", Ed. M.Sanches del Rio; Proceedings SPIE, v.5536, p.16-26, (2004).
+#UD
+#UD The crystal structures are arranged using as a scan
+#UD identifier (#S) the atomic number of the heavier atom
+#UD present in the crystal. Several crystal are possible with
+#UD the same scan id, but they do not conflict.
+#UD  
+#UD The following keyword contain other information:
+#UD #UCOMMENT  comment 
+#UD #UCELL a b c alpha beta gamma  
+#UD        The unit cell dimensions (A and deg) (*MANDATORY, IT MUST EXIST*)
+#UD
+#UD  
+#UD  Data columns:  
+#UD  AtomicNumber  Fraction  X  Y  Z Biso
+#UD  
+#UD
+#UD  This file has been created with the python code that can be found at: 
+#UD     https://github.com/91902078/yb66/tree/main/yb66/stepanov
+#UD
+    """
+
+    f = open(filename,'a')
+    f.write(txt)
+    f.close()
 
 if __name__ == "__main__":
 
@@ -220,10 +273,20 @@ if __name__ == "__main__":
     crystals = f.read().splitlines()
     f.close()
 
-    crystals = ["Mica"]
+    # crystals = ["Mica"]
 
-    os.system("rm tmp.dat")
+    crystal_file = "Crystals_xrayserver.dat"
+    os.system("rm %s" % crystal_file)
+
+    add_header(crystal_file)
     for crystal in crystals:
-        out = get_crystal_data("downloads/%s" % crystal, verbose=1)
-        print (out)
-        add_crystal(out, "tmp.dat")
+        crystal = crystal.replace("(","").replace(")","")
+        print("------------------------------------ crystal: ", crystal)
+        out = get_crystal_data("downloads/%s" % crystal, verbose=0)
+        if (out["Nr_of_components"] > 0) and (out["Syngony_number"] < 8):
+            # print (out)
+            add_crystal(out, crystal_file)
+        else:
+            print("           Not used!")
+
+    print("File written to disk: %s" % crystal_file)
