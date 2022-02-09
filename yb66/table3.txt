@@ -1,0 +1,4 @@
+F_200 this work: F=35.6746, calculated(ref): Fc=35.2, observed(ref): Fo=27.6, |F/Fc|=1.01348
+F_400 this work: F=566.681, calculated(ref): Fc=551.6, observed(ref): Fo=601.6, |F/Fc|=1.02734
+F_600 this work: F=40.3173, calculated(ref): Fc=44.8, observed(ref): Fo=47.6, |F/Fc|=0.899939
+F_800 this work: F=23.7461, calculated(ref): Fc=19.2, observed(ref): Fo=28.8, |F/Fc|=1.23678

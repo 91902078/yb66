@@ -119,19 +119,21 @@ if __name__ == "__main__":
 
             peak_intensity = run(descriptor,h,k,l,mylib,emin*1.1,do_plot=0)
 
-            print("%d  %20s (%d%d%d)  %5.2f  %3.1f-%3.1f (%d) theta=%g DE/E=%4.2f peak=%d" %
-                  (mylib_flag, descriptor, h, k, l,
-                                                 (2*ds), emin*1e-3, emax*1e-3, darwin_width*1e6,
-                                                 bragg_angle*180/numpy.pi, DE_E*1e3,
-                                                 100*peak_intensity
-                                                                  ))
 
-            f.write("%d  %20s (%d%d%d)  %5.2f  %3.1f-%3.1f (%5d) %4.2f %d\n" %
-                  (mylib_flag, descriptor, h, k, l,
-                                                 (2*ds), emin*1e-3, emax*1e-3, darwin_width*1e6,
-                                                 DE_E*1e3,
-                                                 100*peak_intensity
-                                                                  ))
+            if (round(100 * peak_intensity) > 1):
+                print("%d  %20s (%d%d%d)  %5.2f  %3.1f-%3.1f (%d) theta=%g DE/E=%4.2f peak=%d" %
+                      (mylib_flag, descriptor, h, k, l,
+                       (2 * ds), emin * 1e-3, emax * 1e-3, darwin_width * 1e6,
+                       bragg_angle * 180 / numpy.pi, DE_E * 1e3,
+                       100 * peak_intensity
+                       ))
+
+                f.write("%d  %20s (%d%d%d)  %5.2f  %3.1f-%3.1f (%5d) %4.2f %d\n" %
+                      (mylib_flag, descriptor, h, k, l,
+                                                     (2*ds), emin*1e-3, emax*1e-3, darwin_width*1e6,
+                                                     DE_E*1e3,
+                                                     round(100 * peak_intensity)
+                                                                      ))
 
 
     f.close()

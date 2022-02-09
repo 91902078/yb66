@@ -191,11 +191,17 @@ if __name__ == "__main__":
     F600_obs_ref = 11.9 * 4
     F800_obs_ref = 7.2 * 4
 
-    print("F_200 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g" % (F200, F200_calc_ref, F200_obs_ref, F200/F200_calc_ref))
-    print("F_400 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g" % (F400, F400_calc_ref, F400_obs_ref, F400/F400_calc_ref))
-    print("F_600 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g" % (F600, F600_calc_ref, F600_obs_ref, F600/F600_calc_ref))
-    print("F_800 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g" % (F800, F800_calc_ref, F800_obs_ref, F800/F800_calc_ref))
+    txt = ""
+    txt += "F_200 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g\n" % (F200, F200_calc_ref, F200_obs_ref, F200/F200_calc_ref)
+    txt += "F_400 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g\n" % (F400, F400_calc_ref, F400_obs_ref, F400/F400_calc_ref)
+    txt += "F_600 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g\n" % (F600, F600_calc_ref, F600_obs_ref, F600/F600_calc_ref)
+    txt += "F_800 this work: F=%g, calculated(ref): Fc=%g, observed(ref): Fo=%g, |F/Fc|=%g\n" % (F800, F800_calc_ref, F800_obs_ref, F800/F800_calc_ref)
 
+    print(txt)
+    f = open("table3.txt", 'w')
+    f.write(txt)
+    f.close()
+    print("File table3.txt written to disk.")
     #
     # no prototype:
     # F_200 this work: F=39.2492, calculated(ref): Fc=35.2, observed(ref): Fo=27.6, |F/Fc|=1.11503
