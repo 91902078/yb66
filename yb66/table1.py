@@ -1,15 +1,24 @@
+
+#
+# creates a list of high-dspacing crystal reflections from the list of crystals
+# in DABAX files crystals.dat (original DABAX and xraylib list) and Crystals_xrayserver.dat
+# (from Sergey Stepanov list).
+#
+# Run before table1_explore.py to create the list of selected reflections
+# in file table1_explore.txt. It is edited by hand to comment some duplicated crystals
+#
+#
+
 import numpy
-import os
 
 from srxraylib.plot.gol import plot, set_qt
-# from xoppylib.decorators.xraylib_decorated import XraylibDecorated
 from xoppylib.decorators.dabax_decorated import DabaxDecorated
 import scipy.constants as codata
 
 from crystalpy.diffraction.DiffractionSetupDabax import DiffractionSetupDabax
 
 
-def run(descriptor, hkl, material_constants_library):
+def run(descriptor, hh, kk, ll, material_constants_library, energy, do_plot=1):
     import os
     import xraylib
 
@@ -18,10 +27,10 @@ def run(descriptor, hkl, material_constants_library):
 
 
 
-    os.system("rm -f xcrystal.bra xoppy.inp")
+    os.system("rm -f xcrystal.bra xoppy.inp diff_pat.dat")
 
-    dic1a = bragg_calc2(descriptor=descriptor,hh=int(hkl[0]),kk=int(hkl[1]),ll=int(hkl[2]),temper=1.0,
-                       emin=7900.0,emax=8100.0,estep=5.0,fileout="xcrystal.bra",
+    dic1a = bragg_calc2(descriptor=descriptor,hh=hh,kk=kk,ll=ll,temper=1.0,
+                       emin=energy-100,emax=energy+100,estep=5.0,fileout="xcrystal.bra",
                        material_constants_library=material_constants_library)
 
     print("KEYS: ",dic1a.keys())
@@ -34,10 +43,10 @@ def run(descriptor, hkl, material_constants_library):
         GEOMETRY = 0,
         SCAN = 2,
         UNIT = 1,
-        SCANFROM = 25.0,
-        SCANTO = 100.0,
+        SCANFROM = -1000.0,
+        SCANTO = 2000.0,
         SCANPOINTS = 200,
-        ENERGY = 8040.0,
+        ENERGY = energy,
         ASYMMETRY_ANGLE = 0.0,
         THICKNESS = 0.7,
         MOSAIC_FWHM = 0.1,
@@ -49,7 +58,10 @@ def run(descriptor, hkl, material_constants_library):
         FILECOMPLIANCE = "mycompliance.dat")
 
     aa = numpy.loadtxt("diff_pat.dat",skiprows=5)
-    return aa, dic1a
+
+    if do_plot:
+        plot(aa[:,0],aa[:,-1], title="%s (%d%d%d) @ %g eV" % (descriptor,h,k,l,energy))
+    return aa[:,-1].max()
 
 
 
@@ -57,101 +69,72 @@ if __name__ == "__main__":
 
     set_qt()
 
-    # xrl = XraylibDecorated()
     dx0 = DabaxDecorated(file_Crystals="Crystals.dat")
     dx1 = DabaxDecorated(file_Crystals="Crystals_xrayserver.dat")
 
     do_plot = 1
 
 
-#
-# table 3
-#
 
-    list0 = dx0.Crystal_GetCrystalsList()
-    list1 = dx1.Crystal_GetCrystalsList()
-
-    mylist =        ["KCl", "Diamond", "InSb", "ADP", "AlphaQuartz", "PET", "Beryl", "Muscovite", "TlAP", "RbAP", "KAP"]
-    myreflections = ["200", "002",     "111",  "200", "110",         "002", "110",   "002",       "001",  "001",  "001"]
-    darwin_ener   = [2.0,    2.0,       1.7,   1.73,   1.5,          1.48,  0.81,    0.65,        0.5,    0.5,    0.5  ]
-    dspacing=[]
-    emin = []
-    darwin_width = []
-    peak_reflectivity = []
-    file_found = []
-
-    i = 0
-    i0found = 0
-    i1found = 0
-    a0 = None
-    a1 = None
-
-    n = len(mylist)
-
-    for i in range(n):
-        if mylist[i] in list0:
-            print(">>> %s found in Crystals.dat" % (mylist[i]))
-            c0 = dx0.Crystal_GetCrystal(mylist[i])
-            ds = dx0.Crystal_dSpacing(c0,int(myreflections[i][0]),int(myreflections[i][1]),int(myreflections[i][2]))
-            ee = codata.h * codata.c / codata.e / (2 * ds *1e-10)
-            dspacing.append(ds)
-            emin.append(ee)
-            file_found.append(0)
-            # a0,dic1a = run(mylist[i], myreflections[i], dx0)
-
-            cpy = DiffractionSetupDabax(geometry_type=0, crystal_name=mylist[i], thickness=1e-5,
-                 miller_h=int(myreflections[i][0]), miller_k=int(myreflections[i][1]), miller_l=int(myreflections[i][2]),
-                 asymmetry_angle=0.0,
-                 azimuthal_angle=0.0,)
-
-            darwin_width.append( cpy.darwinHalfwidthS(1e3*darwin_ener[i]) )
-
-        elif mylist[i] in list1:
-            print(">>> %s found in Crystals_xrayserver.dat" % (mylist[i]))
-            c0 = dx1.Crystal_GetCrystal(mylist[i])
-            ds = dx1.Crystal_dSpacing(c0,int(myreflections[i][0]),int(myreflections[i][1]),int(myreflections[i][2]))
-            ee = codata.h * codata.c / codata.e / (2 * ds *1e-10)
-            dspacing.append(ds)
-            emin.append(ee)
-            file_found.append(1)
-            # a0,dic1a = run(mylist[i], myreflections[i], dx0)
-            darwin_width.append(0.0)
-        else:
-            print(">>> %s NOT found" % (mylist[i]))
-            dspacing.append(-1)
-            emin.append(0.0)
-            file_found.append(-1)
-            darwin_width.append(0.0)
-
-
-                # if mylist[i] in list0:
-    #     print(">>> %s found in Crystals_xrayserver.dat" % (mylist[i]))
-    #     a1,dic1a = run(mylist[i], myreflections[i], dx1)
-
-    #
-    #
-    # plot(a0[:, 0], a0[:, -1],
-    #      a1[:, 0], a1[:, -1],
-    #      linestyle=[None,'--'],
-    #      marker=[None,"+"],
-    #      title=mylist[i],
-    #      legend=["using DABAX Crystals.dat","using DABAX Crystals_xrayserver.dat"], show=1,
-    #      xtitle=r"$\theta-\theta_B$ [$\mu$rad]", ytitle="reflectivity")
-    #
-    #
-    # print(a0.shape)
-
+    with open('table1_explore.txt') as f:
+        lines = f.readlines()
     f = open("table1.txt", 'w')
-    f.write("         NAME (hkl)     dspacing   found in  emin  DarwinWidth\n")
-    for i in range(len(mylist)):
-        f.write("%15s (%s)   %10.5g   %3d  %g  %g\n" % (
-            mylist[i],
-            myreflections[i],
-            2 * dspacing[i],
-            file_found[i],
-            emin[i],
-            2e6*darwin_width[i],
-        ))
+
+    for line in lines:
+        if line[0] != "#":
+            var = line.split("  ")
+            var = ' '.join(var).split()
+            mylib_flag = int(var[0])
+            if  mylib_flag == 0:
+                mylib = dx0
+            else:
+                mylib = dx1
+
+            descriptor = var[1]
+            h = int(var[2])
+            k = int(var[3])
+            l = int(var[4])
+
+
+
+            c0 = mylib.Crystal_GetCrystal(descriptor)
+            ds = dx0.Crystal_dSpacing(c0,h,k,l)
+
+            lambda_emin = 2 * ds
+            emin = codata.h * codata.c / codata.e / (lambda_emin * 1e-10)
+
+            lambda_emax = 2 * ds * numpy.sin(5 * numpy.pi/180)
+            emax = codata.h * codata.c / codata.e / (lambda_emax * 1e-10)
+
+
+            cpy = DiffractionSetupDabax(geometry_type=0, crystal_name=descriptor, thickness=1e-5,
+                 miller_h=h, miller_k=k, miller_l=l,
+                 asymmetry_angle=0.0,
+                 azimuthal_angle=0.0,
+                                        dabax=mylib)
+
+            darwin_width = 2 * cpy.darwinHalfwidthS(emin*1.1)
+            bragg_angle = numpy.arcsin(lambda_emin / 1.1 / 2 / ds)
+            DE_E = darwin_width  / numpy.tan(bragg_angle)
+
+            peak_intensity = run(descriptor,h,k,l,mylib,emin*1.1,do_plot=0)
+
+            print("%d  %20s (%d%d%d)  %5.2f  %3.1f-%3.1f (%d) theta=%g DE/E=%4.2f peak=%d" %
+                  (mylib_flag, descriptor, h, k, l,
+                                                 (2*ds), emin*1e-3, emax*1e-3, darwin_width*1e6,
+                                                 bragg_angle*180/numpy.pi, DE_E*1e3,
+                                                 100*peak_intensity
+                                                                  ))
+
+            f.write("%d  %20s (%d%d%d)  %5.2f  %3.1f-%3.1f (%5d) %4.2f %d\n" %
+                  (mylib_flag, descriptor, h, k, l,
+                                                 (2*ds), emin*1e-3, emax*1e-3, darwin_width*1e6,
+                                                 DE_E*1e3,
+                                                 100*peak_intensity
+                                                                  ))
+
+
+    f.close()
 
 
 
