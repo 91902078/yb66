@@ -131,13 +131,15 @@ The new code is added to the "develop-gfortran" branch that solves the issue: ht
 
 
 At the moment there are some problems:
-- The setup.py did not work and I created a new setup.py file that works for Linux and Mac but does not include the libshadow3.so and libshadow3c.so libraries. They should be installed manually
-- There are some bugs that make the pi polarization to become NaN, at least in Mac. 
+
 - Windows python-API is not yet built
-- The "develop-gfortran" has not been tested exhaustively and consequently "develop-gfortran-yb66" must be tested a lot before merging with the master. 
+- Linux distribution gives a run-time error, probably due to versioning of libgfortran. 
+- The "develop-gfortran" has not been tested exhaustively and consequently "develop-gfortran-yb66" must be tested a lot before merging with the master. [I RUN THE WORKSPACES IN THE TUTORIAL THEY ARE OK WITH V1 PREPROCESSOR. TO BE TESTED WITH V2. MOSAIC CRYSTALS TO BE TESTED]
+- The setup.py did not work and I created a new setup.py file that works for Linux and Mac but does not include the libshadow3.so and libshadow3c.so libraries. They should be installed manually [SOLVED]
+- There are some bugs that make the pi polarization to become NaN, at least in Mac. [SOLVED.]
 
 
-To install OASYS/ShadowOui use the branch: https://github.com/oasys-kit/shadowOui/tree/yb66 This includes YB66 in the "bragg" preprocessor. It uses xoppylib as dependence! This is not very nice, but it is necessary as it reuses the bragg_calc2 in xoppy. 
+To install OASYS/ShadowOui use the branch: https://github.com/oasys-kit/shadowOui/tree/yb66 This includes YB66 in the "bragg" preprocessor. It uses xoppylib as dependence! This is not very nice, but it is necessary as it reuses the bragg_calc2 in xoppy. The preprocessor included YB66. However, not all new crystals (like Beryl) are yet available [TO BE DONE], for the moment one can run xoppy/crystal and use the created xcrystal.bra file also in SHADOW.  
 
 There is a OASYS workspace with YB66 examples and calculations for the paper in this repo: https://github.com/91902078/yb66/tree/main/workspaces 
 
