@@ -1,8 +1,8 @@
 import matplotlib.pylab as plt
 from srxraylib.plot.gol import plot, set_qt
-
 from xoppylib.decorators.xraylib_decorated import XraylibDecorated
 from xoppylib.decorators.dabax_decorated import DabaxDecorated
+
 
 if __name__ == "__main__":
 
@@ -14,7 +14,6 @@ if __name__ == "__main__":
     print(dx.info())
 
     do_plot = 1
-
 
     #
     # f0
@@ -33,10 +32,6 @@ if __name__ == "__main__":
              B0_xrl["data"][0, :], B0_xrl["data"][1, :],
              B0_dbx["data"][0, :], B0_dbx["data"][1, :],
              Bf_dbx["data"][0, :], Bf_dbx["data"][1, :],
-             #
-             # linestyle=[None,None,None],
-             # marker=[None,'+',None,'+'],
-             # color=['r','r','b','b'],
              legend=['Y xraylib',r'Y$^{+0}$ dabax',r'Y$^{+3}$ dabax',
                      'Y xraylib',r'B$^{+0}$ dabax',r'B$^{-0.045}$ dabax'],
              xtitle=r'q=sin$\theta$/$\lambda$',ytitle='f$_0$ [electron units]',
@@ -44,7 +39,7 @@ if __name__ == "__main__":
              marker=[".","None","None",'+',"None","o"],
              show=0)
 
-        plt.savefig("fig1.png")
-        print("File fig1 written to disk.")
+        plt.savefig("f0.png")
+        print("File f0.png written to disk.")
         plt.show()
 
