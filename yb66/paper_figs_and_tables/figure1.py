@@ -39,7 +39,8 @@ if __name__ == "__main__":
              marker=[".","None","None",'+',"None","o"],
              show=0)
 
-        plt.savefig("f0.png")
-        print("File f0.png written to disk.")
+        filename = "/tmp_14_days/srio/fig1.png"
+        plt.savefig(filename)
+        print("File %s written to disk." % filename)
         plt.show()
 

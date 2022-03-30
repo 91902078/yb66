@@ -139,6 +139,16 @@ To install OASYS/ShadowOui use the branch: https://github.com/oasys-kit/shadowOu
 There is a OASYS workspace with YB66 examples and calculations for the paper in this repo: https://github.com/91902078/yb66/tree/main/workspaces 
 
 
+FIGURES AND TABLES
+------------------
 
+Figures and Tables for the paper used these scripts and worspaces:
+
+- Table 1 use  https://github.com/91902078/yb66/paper_figs_and_tables/table1_explore.py https://github.com/91902078/yb66/paper_figs_and_tables/table1.py and *txt
+- Table 3 use  https://github.com/91902078/yb66/paper_figs_and_tables/table3.py 
+- Fig. 1 use https://github.com/91902078/yb66/paper_figs_and_tables/figure1.py
+- Fig. 4,5  use the Oasys workspace https://github.com/91902078/yb66/workspaces/yb66_paper.ows
+- Fig. 6 use https://github.com/91902078/yb66/paper_figs_and_tables/figure6.py
+- Fig. 7,8  use the Oasys workspace https://github.com/91902078/yb66/workspaces/yb66_paper.ows
 
 
