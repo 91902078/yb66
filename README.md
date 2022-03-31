@@ -134,7 +134,7 @@ At the moment these are the thinks todo:
 - Windows python-API is not yet built
 - The "develop-gfortran" has not been tested exhaustively and consequently "develop-gfortran-yb66" must be tested a lot before merging with the master. [I RUN THE WORKSPACES IN THE TUTORIAL THEY ARE OK WITH V1 PREPROCESSOR. TO BE TESTED WITH V2. MOSAIC CRYSTALS TO BE TESTED]
 
-To install OASYS/ShadowOui use the branch: https://github.com/oasys-kit/shadowOui/tree/yb66 This includes YB66 in the "bragg" preprocessor. It uses xoppylib as dependence! This is not very nice, but it is necessary as it reuses the bragg_calc2 in xoppy. The preprocessor included YB66. However, not all new crystals (like Beryl) are yet available [TO BE DONE], for the moment one can run xoppy/crystal and use the created xcrystal.bra file also in SHADOW.  
+To install OASYS/ShadowOui use the branch: https://github.com/oasys-kit/shadowOui/tree/yb66 This includes YB66, Beryl and Muscovite in the "bragg" preprocessor. It uses xoppylib as dependence! This is not very nice, but it is necessary as it reuses the bragg_calc2 in xoppy. The preprocessor must be refactored to allow loading all files available in DABAX [TO BE DONE]. For the moment one can run xoppy/crystal and use the created xcrystal.bra file also in SHADOW.  
 
 There is a OASYS workspace with YB66 examples and calculations for the paper in this repo: https://github.com/91902078/yb66/tree/main/workspaces 
 
