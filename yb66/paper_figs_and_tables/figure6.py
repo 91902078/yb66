@@ -2,7 +2,7 @@
 #
 # test numeric f1f2 values with default DABAX f1f2_Windt.dat file (that uses Henke/CXRO data for E<30 keV)
 #
-
+import time
 from dabax.dabax_xraylib import DabaxXraylib
 
 f_W = DabaxXraylib()
@@ -31,6 +31,8 @@ from dabax.dabax_xraylib import DabaxXraylib
 #
 import os
 os.system("rm xcrystal.bra")
+
+t0 = time.time()
 bragg_dictionary = bragg_calc2(
     descriptor = "YB66",
     hh         = 0,
@@ -139,6 +141,7 @@ run_diff_pat(
     FILECOMPLIANCE     = "mycompliance.dat",
     )
 
+
 # #
 # # example plot
 # #
@@ -151,6 +154,7 @@ data2 = numpy.loadtxt("diff_pat.dat", skiprows=5)
 # #
 
 
+print("Calculation time: ", time.time() - t0)
 import numpy
 
 
