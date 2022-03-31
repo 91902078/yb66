@@ -37,9 +37,9 @@ bragg_dictionary = bragg_calc2(
     kk         = 0,
     ll         = 4,
     temper     = 1.0,
-    emin       = 1285.6,
-    emax       = 1485.6,
-    estep      = 0.25, #1.0,
+    emin       = 1370.0,
+    emax       = 1410.0,
+    estep      = 0.4, #1.0,
     ANISO_SEL  = 2, #0,
     fileout    = "xcrystal.bra",
     do_not_prototype = 0,  # 0=use site groups (recommended), 1=use all individual sites
@@ -104,8 +104,8 @@ bragg_dictionary = bragg_calc2(
     kk         = 0,
     ll         = 6,
     temper     = 1.0,
-    emin       = 1980.0,
-    emax       = 2180.0,
+    emin       = 2060.0,
+    emax       = 2100.0,
     estep      = 0.25, #1.0,
     ANISO_SEL  = 2, #0,
     fileout    = "xcrystal.bra",
@@ -183,9 +183,9 @@ matplotlib.rc('font', **font)
 p = plot(r1[:,0],r1[:,-1],r2[:,0],r2[:,-1],
          xtitle=r"$\theta-\theta_B [\mu rad]$",
          ytitle="Reflectivity",
-         legend=["YB66 (004) E=%4.1f eV (FWHM=%3.1f Peak=%3.2f, Area=%g) " %(energy1,fwhm1,peak1, integrated_intensity1),
-                 "YB66 (006) E=%4.1f eV (FWHM=%3.1f Peak=%3.2f, Area=%g) " %(energy2,fwhm2,peak2, integrated_intensity2) ],
-         show=0,yrange=[0,0.3],figsize=(16,8))
+         legend=["YB66 (004) E=%4.1f eV " %(energy1),
+                 "YB66 (006) E=%4.1f eV " %(energy2) ],
+         show=0,yrange=[0,0.5],figsize=(16,8))
 
 plt.savefig("/tmp_14_days/srio/fig6.png")
 plt.show()
