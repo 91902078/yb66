@@ -4,12 +4,12 @@ yb66
 On going working for upgrading XOPPY/CRYSTAL and SHADOW with any crystal, in particular YB66
 
 
-XOPPY (current, obsolete soon)
-------------------------------
+XOPPY
+-----
 
 XOPPY/CRYSTAL and also XOPPY/FH read a preprocessor file xcrystal.bra
 
-This file was prepared with 
+This file was prepared with (now obsolete)
 
 ```
     from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc
@@ -39,7 +39,7 @@ pip install xoppylib
 ```
 
 
-For the moment, the new bragg_calc is called bragg_calc2:
+The new bragg_calc is called bragg_calc2:
 
 ```
     from xoppylib.crystals.tools import bragg_calc2, crystal_fh
@@ -108,9 +108,6 @@ from xoppylib.crystals.tools import run_diff_pat, crystal_fh
 
 Examples are in the directory https://github.com/91902078/yb66/yb66/new
 
-Xoppy is not yet released with this upgrade. To use OASYS/XOPPY use the branch https://github.com/oasys-kit/xoppy/tree/xoppylib
-(New crystal YB66 is added to the list of crystals. It uses xraylib when possible, otherwise dabax is used, like for YB66)
-
 
 TODO: 
 - Include the temperature factor in the widgets (not yet done) 
@@ -130,11 +127,7 @@ file has been adapted from the diff_pat code https://github.com/srio/crystal
 The new code is added to the "develop-gfortran" branch that solves the issue: https://github.com/oasys-kit/shadow3/issues/35
 
 
-At the moment these are the thinks todo:
-- Windows python-API is not yet built
-- The "develop-gfortran" has not been tested exhaustively and consequently "develop-gfortran-yb66" must be tested a lot before merging with the master. [I RUN THE WORKSPACES IN THE TUTORIAL THEY ARE OK WITH V1 PREPROCESSOR. TO BE TESTED WITH V2. MOSAIC CRYSTALS TO BE TESTED]
-
-To install OASYS/ShadowOui use the branch: https://github.com/oasys-kit/shadowOui/tree/yb66 This includes YB66, Beryl and Muscovite in the "bragg" preprocessor. It uses xoppylib as dependence! This is not very nice, but it is necessary as it reuses the bragg_calc2 in xoppy. The preprocessor must be refactored to allow loading all files available in DABAX [TO BE DONE]. For the moment one can run xoppy/crystal and use the created xcrystal.bra file also in SHADOW.  
+At the moment, to install OASYS/ShadowOui use the branch: https://github.com/oasys-kit/shadowOui/tree/yb66 This includes Beryl and Muscovite in the "bragg" "default" or traditional preprocessor (v1), and also implements YB66. In addition, it creates preprocessor file v2 with a crystal from two new lists: DABAX and XRayServer. It uses xoppylib as dependence, as it reuses the bragg_calc2 in xoppy.
 
 There is a OASYS workspace with YB66 examples and calculations for the paper in this repo: https://github.com/91902078/yb66/tree/main/workspaces 
 
